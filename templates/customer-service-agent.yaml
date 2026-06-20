@@ -1,0 +1,47 @@
+name: customer-service-agent-template
+version: 0.1.0
+
+scenario: "客服 / 售后 / 订单咨询"
+
+intents:
+  - order_status
+  - refund_policy
+  - return_request
+  - product_question
+  - complaint
+  - other
+
+tools:
+  - name: knowledge_search
+    permission: read_only
+  - name: order_lookup
+    permission: read_order_status
+  - name: ticket_create
+    permission: create_ticket
+
+workflow:
+  - classify_intent
+  - retrieve_policy
+  - call_business_tool_if_needed
+  - generate_answer
+  - check_escalation
+  - respond_or_handoff
+
+handoff_rules:
+  - "用户情绪强烈或投诉升级"
+  - "退款金额超过阈值"
+  - "订单信息不一致"
+  - "用户要求人工"
+  - "模型置信度低于 0.75"
+
+response_rules:
+  - "不得承诺政策之外的赔付"
+  - "不得暴露内部系统信息"
+  - "涉及个人信息时只展示最小必要字段"
+
+metrics:
+  - first_contact_resolution
+  - average_handle_time
+  - escalation_accuracy
+  - customer_satisfaction
+  - policy_violation_rate

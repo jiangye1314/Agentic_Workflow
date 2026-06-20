@@ -1,0 +1,56 @@
+name: research-agent-template
+version: 0.1.0
+
+scenario: "行业研究 / 潜在客户分析 / 竞品扫描"
+
+inputs:
+  - query
+  - target_market
+  - date_range
+  - output_format
+
+workflow:
+  - id: clarify_scope
+    type: llm
+    goal: "澄清研究范围、地域、时间和输出格式"
+
+  - id: collect_sources
+    type: search
+    goal: "收集官方、财报、新闻、数据库和公开报告"
+    source_policy:
+      prefer:
+        - official_site
+        - annual_report
+        - regulatory_filing
+        - reputable_media
+      avoid:
+        - unsourced_blog
+        - social_post_only
+
+  - id: extract_facts
+    type: llm
+    goal: "抽取事实、指标、公司、时间、链接"
+
+  - id: compare_and_rank
+    type: llm
+    goal: "按评价维度进行对比和排序"
+
+  - id: write_report
+    type: llm
+    goal: "生成带来源的结构化报告"
+
+  - id: review
+    type: evaluator
+    goal: "检查来源、时间、事实和不确定项"
+
+outputs:
+  - executive_summary
+  - comparison_table
+  - source_list
+  - uncertainty_notes
+
+human_review:
+  required_when:
+    - "report_contains_investment_advice"
+    - "source_count < 3"
+    - "data_conflict_detected"

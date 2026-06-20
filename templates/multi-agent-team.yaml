@@ -1,0 +1,74 @@
+name: multi-agent-team-template
+version: 0.1.0
+
+team_goal: ""
+
+shared_workspace:
+  artifacts:
+    - research_notes
+    - draft
+    - fact_check_report
+    - final_output
+
+agents:
+  - id: planner
+    role: "任务规划者"
+    responsibilities:
+      - "拆解任务"
+      - "分配子任务"
+      - "定义验收标准"
+    tools: []
+
+  - id: researcher
+    role: "资料研究员"
+    responsibilities:
+      - "收集资料"
+      - "标注来源"
+      - "整理证据"
+    tools:
+      - web_search
+      - knowledge_search
+
+  - id: writer
+    role: "内容生成者"
+    responsibilities:
+      - "生成初稿"
+      - "按结构输出"
+    tools: []
+
+  - id: fact_checker
+    role: "事实核查员"
+    responsibilities:
+      - "核对事实"
+      - "检查引用"
+      - "标出不确定项"
+    tools:
+      - web_search
+      - source_checker
+
+  - id: editor
+    role: "编辑"
+    responsibilities:
+      - "统一风格"
+      - "修订表达"
+      - "输出最终稿"
+    tools: []
+
+workflow:
+  - planner
+  - researcher
+  - writer
+  - fact_checker
+  - editor
+
+guardrails:
+  - "没有来源的数据不得写成事实"
+  - "高风险建议必须转人工"
+  - "所有外部引用必须记录 URL 或文档 ID"
+
+evaluation:
+  metrics:
+    - completeness
+    - factuality
+    - citation_quality
+    - review_pass_rate

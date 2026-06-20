@@ -1,0 +1,47 @@
+name: manufacturing-rag-agent-template
+version: 0.1.0
+
+scenario: "制造业知识问答 / 运营扫描 / 数据看板"
+
+data_sources:
+  - sop_documents
+  - process_manuals
+  - maintenance_logs
+  - quality_reports
+  - erp_exports
+
+permissions:
+  enforce_at:
+    - retrieval_layer
+    - api_layer
+    - database_layer
+  do_not_rely_on:
+    - prompt_only_filtering
+
+workflow:
+  - id: authenticate_user
+    type: auth
+  - id: resolve_permission_scope
+    type: policy
+  - id: retrieve_authorized_context
+    type: retrieval
+  - id: analyze_or_answer
+    type: llm
+  - id: attach_citations
+    type: formatter
+  - id: safety_review
+    type: evaluator
+  - id: return_or_escalate
+    type: output
+
+guardrails:
+  - "不得返回用户无权访问的文档片段"
+  - "涉及设备安全、质量事故、生产调度的建议必须人工确认"
+  - "所有关键结论必须带来源"
+
+metrics:
+  - permission_leakage_rate
+  - citation_coverage
+  - answer_accuracy
+  - incident_escalation_accuracy
+  - response_latency

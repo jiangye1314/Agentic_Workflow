@@ -1,0 +1,58 @@
+name: rag-workflow-template
+version: 0.1.0
+
+data_pipeline:
+  sources:
+    - type: pdf
+      path: sample-data/
+    - type: markdown
+      path: sample-data/
+  preprocessing:
+    ocr: optional
+    pii_redaction: true
+    deduplication: true
+  chunking:
+    strategy: semantic
+    max_tokens: 800
+    overlap_tokens: 120
+  metadata:
+    - document_id
+    - title
+    - page
+    - department
+    - confidentiality_level
+
+retrieval:
+  mode: hybrid
+  top_k: 8
+  rerank: true
+  filters:
+    enforce_permissions: true
+    metadata_keys:
+      - department
+      - confidentiality_level
+
+generation:
+  rules:
+    - "只基于检索内容回答"
+    - "无法从材料中确认时必须说明不知道"
+    - "必须返回引用来源"
+    - "高风险问题转人工"
+  output_format:
+    answer: string
+    citations: array
+    confidence: number
+    needs_human_review: boolean
+
+evaluation:
+  metrics:
+    - retrieval_recall
+    - citation_accuracy
+    - answer_factuality
+    - refusal_accuracy
+
+human_review:
+  required_when:
+    - "no_citation"
+    - "low_confidence"
+    - "high_risk_domain"
