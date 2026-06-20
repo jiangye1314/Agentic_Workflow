@@ -1,0 +1,83 @@
+name: workflow-template
+version: 0.1.0
+owner: ""
+scenario: ""
+
+goal:
+  description: ""
+  success_criteria:
+    - ""
+
+inputs:
+  - name: user_request
+    type: string
+    required: true
+    description: ""
+
+outputs:
+  - name: final_answer
+    type: string
+    description: ""
+
+steps:
+  - id: classify_intent
+    type: llm
+    description: "识别用户意图和风险等级"
+    inputs:
+      - user_request
+    outputs:
+      - intent
+      - risk_level
+
+  - id: retrieve_context
+    type: retrieval
+    description: "检索授权知识库或业务资料"
+    condition: "risk_level != 'blocked'"
+    outputs:
+      - retrieved_context
+      - citations
+
+  - id: generate_draft
+    type: llm
+    description: "基于检索内容生成草稿"
+    inputs:
+      - user_request
+      - retrieved_context
+    outputs:
+      - draft
+
+  - id: validate_output
+    type: evaluator
+    description: "检查事实、格式、安全边界"
+    inputs:
+      - draft
+      - citations
+    outputs:
+      - validation_result
+      - needs_human_review
+
+  - id: final_response
+    type: output
+    description: "输出最终结果或转人工"
+    inputs:
+      - draft
+      - validation_result
+
+human_review:
+  required_when:
+    - "risk_level in ['medical', 'legal', 'financial', 'employment', 'minor_data']"
+    - "confidence < 0.75"
+    - "validation_result.has_policy_risk == true"
+
+logging:
+  record_inputs: false
+  record_tool_calls: true
+  redact_pii: true
+
+evaluation:
+  dataset: evaluation/eval.jsonl
+  metrics:
+    - task_success_rate
+    - factuality
+    - citation_precision
+    - escalation_accuracy
