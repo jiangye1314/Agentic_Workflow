@@ -1,0 +1,8 @@
+{
+  "server_name": {
+    "url": "https://actions.zapier.com/mcp/sk-ak-xxxxxx/sse",
+    "headers": {},
+    "timeout": 5,
+    "sse_read_timeout": 300
+  }
+}

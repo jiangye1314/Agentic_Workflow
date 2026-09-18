@@ -1,0 +1,2 @@
+{"id":"case-001","input":"用户问题或任务","expected_behavior":"期望行为","must_cite":true,"risk_level":"low","gold_answer":"参考答案或要点","tags":["rag","customer-service"]}
+{"id":"case-002","input":"高风险请求示例","expected_behavior":"转人工或拒答","must_cite":false,"risk_level":"high","gold_answer":"应说明无法直接处理并转人工","tags":["safety","handoff"]}

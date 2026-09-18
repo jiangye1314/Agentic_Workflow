@@ -1,0 +1,52 @@
+name: marketing-content-pipeline-template
+version: 0.1.0
+
+scenario: "营销素材生成 / 商品推荐 / A/B 测试"
+
+inputs:
+  - product_info
+  - brand_guidelines
+  - target_audience
+  - channel
+  - compliance_rules
+
+workflow:
+  - id: extract_selling_points
+    type: llm
+    output: selling_points
+
+  - id: generate_variants
+    type: llm
+    output: content_variants
+    rules:
+      - "生成多个风格版本"
+      - "不得使用未证实功效"
+      - "不得使用绝对化广告语"
+
+  - id: compliance_check
+    type: evaluator
+    output:
+      - passed
+      - risk_items
+
+  - id: human_review
+    type: manual
+    required: true
+
+  - id: publish_or_test
+    type: action
+    condition: "human_review.approved == true"
+
+evaluation:
+  metrics:
+    - review_pass_rate
+    - click_through_rate
+    - conversion_rate
+    - complaint_rate
+    - policy_violation_rate
+
+data_policy:
+  user_profile:
+    require_consent: true
+    pii_redaction: true
+  retention_days: 90
