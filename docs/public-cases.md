@@ -222,13 +222,13 @@ examples/contact-center-copilot/
 
 建议优先补充三个仓库示例：
 
-1. `examples/ragflow-document-qa/`  
+1. `examples/ragflow-document-qa/`
    最贴近企业知识库与 RAG 工作流，风险可控，读者容易复现。
 
-2. `examples/customer-service-agent/`  
+2. `examples/customer-service-agent/`
    业务价值明确，可演示意图识别、工具调用、转人工、评估闭环。
 
-3. `examples/education-tutor-agent/`  
+3. `examples/education-tutor-agent/`
    适合展示“AI 辅助而非替代人”的设计，能体现安全边界。
 
 ## 不建议优先复刻的案例

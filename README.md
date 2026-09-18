@@ -1,7 +1,11 @@
-# 智能体工作流设计：方法与实践 · 配套资源库
+# 《智能体工作流设计：方法与实践》配套资源库
 
-> 《智能体工作流设计：方法与实践》官方配套仓库
-> 作者：绛烨、吕昭波 ｜ 机械工业出版社（智能系统与技术丛书）｜ ISBN 978-7-111-81535-8
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub Issues](https://img.shields.io/github/issues/jiangye1314/Agentic_Workflow)](https://github.com/jiangye1314/Agentic_Workflow/issues)
+
+> **作者**：绛烨、吕昭波 ｜ **出版**：机械工业出版社（智能系统与技术丛书） ｜ **ISBN**：978-7-111-81535-8
+> **代码仓库**：https://github.com/jiangye1314/Agentic_Workflow ｜ **交流**：公众号「AIGC新知」「沐然云计算」
 
 本仓库为读者提供与全书配套的**章节导读、提示词模板库、工作流/Agent 模板、平台实践资源、公开案例索引与勘误表**，帮助你在阅读之外快速动手实践。
 
@@ -25,7 +29,7 @@
 | 第一篇 基础知识 | 第 1 章 业务流程概述 | [导读](chapters/ch01-business-process/) | — |
 | | 第 2 章 认识工作流 | [导读](chapters/ch02-workflow-basics/) | [workflow-spec 模板](templates/workflow-spec.yaml) |
 | | 第 3 章 智能体工作流概述 | [导读](chapters/ch03-agent-workflow-overview/) | [agent-card 模板](templates/agent-card.md) |
-| 第二篇 方法论 | 第 4 章 核心设计模式 | [导读](chapters/ch04-design-patterns/) ★ | [最小代码示例](examples/design-patterns-mini/) |
+| 第二篇 方法论 | 第 4 章 核心设计模式 | [导读](chapters/ch04-design-patterns/) ★ | [最小代码示例](examples/design-patterns-mini/)、[本章伪代码](examples/ch04-design-patterns/) |
 | | 第 5 章 工业界构建方法 | [导读](chapters/ch05-industry-methods/) | [multi-agent-team 模板](templates/multi-agent-team.yaml)、[Agent 演进伪代码](examples/ch05-agent-evolution/) |
 | | 第 6 章 Agent 系统工程实践 | [导读](chapters/ch06-agent-engineering/) ★ | [评估集模板](templates/eval-dataset-template.jsonl)、[人工复核清单](templates/human-review-checklist.md) |
 | 第三篇 技术实现 | 第 7 章 企业级智能体平台 | [导读](chapters/ch07-agent-platforms/) ★ | [prompts/](prompts/)、[书中提示词模板](prompts/book-templates/)、[MCP 配置](examples/ch07-platform-configs/)、[resources/platform-template-matrix.md](resources/platform-template-matrix.md) |
