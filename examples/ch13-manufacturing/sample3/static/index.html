@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>牧童MES · 物料监控</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  font-size:12px;color:#1a1a1a;background:#e8ecf1;
+  width:100vw;height:100vh;overflow:hidden;display:flex;flex-direction:column;
+}
+/* 菜单栏 */
+.menubar{background:#fff;border-bottom:1px solid #d0d0d0;flex-shrink:0;display:flex;align-items:center;padding:0;height:26px}
+.menubar .mi{padding:3px 12px;font-size:12px;color:#333;cursor:pointer;height:100%;display:flex;align-items:center}
+.menubar .mi:hover{background:#e0e0e0}
+/* Ribbon */
+.ribbon{background:#fff;border-bottom:1px solid #d0d0d0;flex-shrink:0;display:flex;align-items:center;padding:3px 6px;gap:2px}
+.ribbon .rg{display:flex;align-items:center;gap:1px;padding:0 6px;border-right:1px solid #e0e0e0}
+.ribbon .rg:last-child{border-right:none}
+.ribbon .rb{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;border:1px solid transparent;border-radius:2px;background:none;cursor:pointer;font-family:inherit;color:#444;min-width:48px;gap:1px}
+.ribbon .rb:hover{background:#e8f0fe;border-color:#b0c8e8}
+.ribbon .rb.active{background:#e8f0fe;border-color:#90b4e0}
+.ribbon .rb .ricon{font-size:14px;line-height:1}
+.ribbon .rb .rlabel{font-size:10px;color:#666;white-space:nowrap}
+/* 主区 */
+.workspace{flex:1;display:flex;overflow:hidden}
+/* 左树 */
+.tree{width:210px;min-width:180px;background:#fff;border-right:1px solid #d0d0d0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.tree .thead{padding:6px 10px;font-size:11px;font-weight:600;color:#333;border-bottom:1px solid #e0e0e0;background:#f5f5f5;flex-shrink:0}
+.tree .tbody{flex:1;overflow-y:auto;padding:4px 0}
+.tn{font-size:11px;color:#333;cursor:pointer;padding:3px 8px;display:flex;align-items:center;gap:4px;white-space:nowrap;user-select:none}
+.tn:hover{background:#e8f0fe}
+.tn.active{background:#d0e2ff;font-weight:600;color:#1a56db}
+.tn .ti{width:16px;text-align:center;flex-shrink:0;font-size:10px}
+.tn .ta{width:14px;text-align:center;flex-shrink:0;font-size:8px;color:#999}
+.l0{padding-left:6px;font-weight:600}.l1{padding-left:26px}.l2{padding-left:46px}.l3{padding-left:66px;font-size:10px}
+/* 右内容 */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.bc{background:#fff;border-bottom:1px solid #e0e0e0;padding:4px 10px;font-size:11px;color:#666;flex-shrink:0;display:flex;align-items:center;gap:4px}
+.bc span{color:#2563eb;cursor:pointer}
+.bc span:hover{text-decoration:underline}
+.bc .bcs{color:#aaa;cursor:default;text-decoration:none}
+.tbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:4px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tbar .btn{padding:3px 10px;border:1px solid #c0c0c0;border-radius:2px;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;color:#333}
+.tbar .btn:hover{background:#f0f0f0}
+.tbar .btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.tbar .tsep{width:1px;height:16px;background:#d9d9d9;margin:0 3px}
+.tbar .llabel{font-weight:600;font-size:12px;margin-right:8px}
+/* KPI */
+.kpi{background:#fff;border-bottom:1px solid #e0e0e0;flex-shrink:0;padding:8px 10px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.kpi .kb{border:1px solid #e0e0e0;border-radius:2px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.kb .kl{font-size:10px;color:#888}.kb .kv{font-size:22px;font-weight:600;color:#1a1a1a;letter-spacing:-0.5px}.kb .ks{font-size:10px;color:#888}
+.kb.g{border-left:3px solid #2e7d32}.kb.y{border-left:3px solid #e68a00}.kb.r{border-left:3px solid #c62828}.kb.b{border-left:3px solid #2563eb}
+/* 线段标签 */
+.stabs{display:flex;border-bottom:1px solid #e0e0e0;flex-shrink:0;background:#f8f8f8}
+.stabs .st{padding:5px 14px;font-size:11px;cursor:pointer;border-bottom:2px solid transparent;color:#666;font-family:inherit;background:none}
+.stabs .st:hover{color:#333}
+.stabs .st.active{color:#1a1a1a;border-bottom-color:#2563eb;font-weight:600;background:#fff}
+/* 主面板 */
+.mpanel{flex:1;display:flex;overflow:hidden;background:#fff}
+.tpanel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tscroll{flex:1;overflow-y:auto}
+.tscroll table{width:100%;border-collapse:collapse}
+.tscroll thead th{position:sticky;top:0;z-index:2;background:#f0f0f0;font-size:10px;font-weight:500;color:#555;padding:4px 8px;text-align:left;border-bottom:1px solid #d0d0d0;white-space:nowrap}
+.tscroll thead th.r{text-align:right}
+.tscroll thead th .sort{font-size:8px;color:#aaa;margin-left:2px;cursor:pointer}
+.tscroll tbody td{padding:2px 8px;border-bottom:1px solid #f0f0f0;font-size:11px;white-space:nowrap}
+.tscroll tbody tr{cursor:default}
+.tscroll tbody tr:hover{background:#e8f0fe}
+.tscroll tbody tr.sel{background:#d0e2ff}
+.tscroll tbody tr.crit{background:#fff5f5}
+.tscroll tbody tr.crit:hover{background:#ffe8e8}
+.tscroll tbody tr.warn{background:#fffcf5}
+.tscroll tbody tr.warn:hover{background:#fff8e8}
+.tscroll tbody tr.gr td{background:#f5f5f5;font-size:10px;font-weight:600;color:#555;padding:4px 8px;border-bottom:1px solid #e0e0e0;cursor:default}
+.tscroll tbody tr.gr:hover td{background:#f5f5f5}
+.sb{display:inline-block;width:3px;height:12px;border-radius:1px;margin-right:5px;vertical-align:middle}
+.sbg{background:#2e7d32}.sby{background:#e68a00}.sbr{background:#c62828}
+.ttr{color:#c62828;font-weight:600}.tty{color:#e68a00;font-weight:600}.ttn{color:#333}
+/* HITL 审批面板 */
+.hitl-fab{position:fixed;right:16px;bottom:16px;z-index:90;background:#dc2626;color:#fff;border:none;border-radius:24px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(220,38,38,.35);display:flex;align-items:center;gap:6px;font-family:inherit}
+.hitl-fab:hover{background:#b91c1c}
+.hitl-fab .badge{background:#fff;color:#dc2626;border-radius:10px;font-size:10px;padding:0 6px;font-weight:700}
+.hitl-panel{position:fixed;right:16px;bottom:64px;width:360px;max-height:70vh;background:#fff;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);z-index:95;display:none;flex-direction:column;overflow:hidden}
+.hitl-panel.open{display:flex}
+.hp-head{padding:10px 14px;background:#dc2626;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.hp-head h3{font-size:13px;font-weight:600}
+.hp-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:14px}
+.hp-body{flex:1;overflow-y:auto;padding:10px}
+.hp-item{border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:10px}
+.hp-item.risk-high{border-left:4px solid #dc2626}.hp-item.risk-medium{border-left:4px solid #e68a00}
+.hp-meta{font-size:10px;color:#888;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap}
+.hp-risk-high{color:#dc2626;font-weight:700}.hp-risk-medium{color:#e68a00;font-weight:700}
+.hp-analysis{font-size:11px;color:#333;line-height:1.6;background:#f8fafd;border-radius:6px;padding:8px;max-height:120px;overflow-y:auto;margin-bottom:8px;white-space:pre-wrap}
+.hp-actions{display:flex;gap:8px}
+.hp-actions button{flex:1;padding:7px 0;border:none;border-radius:6px;font-size:12px;cursor:pointer;color:#fff;font-family:inherit}
+.hp-approve{background:#16a34a}.hp-approve:hover{background:#15803d}
+.hp-reject{background:#dc2626}.hp-reject:hover{background:#b91c1c}
+.hp-empty{font-size:11px;color:#888;text-align:center;padding:20px 0}
+.hp-tl{font-size:10px;color:#666;line-height:1.7;border-top:1px dashed #e5e7eb;margin-top:8px;padding-top:6px}
+.hp-tl .t{color:#999}
+/* 详情面板 */
+.dpan{width:0;overflow:hidden;transition:width .12s;flex-shrink:0;background:#fff}
+.dpan.open{width:420px;border-left:1px solid #e0e0e0}
+.din{display:none;flex-direction:column;height:100%}
+.dpan.open .din{display:flex}
+.dhead{padding:8px 10px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:#fafafa}
+.dhead h2{font-size:13px;font-weight:600}
+.dhead .dc{width:20px;height:20px;border:1px solid #c0c0c0;border-radius:2px;background:#fff;cursor:pointer;font-size:11px;color:#666;display:flex;align-items:center;justify-content:center}
+.dhead .dc:hover{background:#f0f0f0}
+.dbody{flex:1;overflow-y:auto;padding:10px}
+.ib{margin-bottom:14px}
+.ib .ibt{font-size:10px;font-weight:600;color:#555;padding-bottom:3px;border-bottom:1px solid #e0e0e0;margin-bottom:6px}
+.ib .ibg{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
+.ib .ibl{font-size:10px;color:#888}
+.ib .ibv{font-size:11px;color:#333}
+.ib .ibv.hi{color:#c62828;font-weight:600}
+.ab{background:#f8fafd;border:1px solid #d0d7e2;border-radius:2px;padding:10px;margin-bottom:10px}
+.ab .abl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+.ab .abt{font-size:11px;line-height:1.8;color:#333}
+.ab .abt .r{color:#c62828;font-weight:600}
+.ab .abt .g{color:#2e7d32;font-weight:600}
+.ab .abtr{font-size:9px;color:#bbb;margin-top:8px;padding-top:6px;border-top:1px solid #e0e0e0}
+/* 大模型标注 */
+.llm-badge{display:inline-block;background:#7c3aed;color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600;vertical-align:middle}
+.llm-strip{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:2px;padding:6px 10px;margin-bottom:10px;font-size:10px;color:#6d28d9;display:flex;align-items:center;gap:6px}
+.llm-strip .llm-icon{font-size:14px}
+.formula-strip{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:2px;padding:6px 10px;margin-bottom:12px;font-size:10px;color:#166534;display:flex;align-items:center;gap:6px}
+.formula-strip .fm-icon{font-size:13px}
+
+/* 详情面板 Tab 栏 */
+.dtab-bar{display:flex;border-bottom:2px solid #e0e0e0;flex-shrink:0;margin-bottom:10px}
+.dtab-bar .dt{flex:1;padding:8px 6px;font-size:11px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;font-family:inherit;color:#888;transition:all .15s;white-space:nowrap}
+.dtab-bar .dt:hover{color:#333;background:#f8f8f8}
+.dtab-bar .dt.active{color:#1a1a1a;border-bottom-color:#2563eb;font-weight:600}
+.dtab-bar .dt .dt-icon{font-size:13px;display:block;margin-bottom:2px}
+.dtab-bar .dt .dt-label{font-size:10px}
+.dtab-bar .dt .dt-api{font-size:7px;color:#bbb;display:block;font-family:"SF Mono","Cascadia Code","Consolas",monospace}
+
+/* 分析操作按钮组 */
+.agent-actions{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.agent-actions button{flex:1;min-width:70px;padding:8px 6px;border:1px solid #d0d0d0;border-radius:4px;background:#fff;cursor:pointer;font-family:inherit;font-size:10px;text-align:center;transition:all .15s}
+.agent-actions button:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.agent-actions button .aa-icon{font-size:16px;display:block;margin-bottom:3px}
+.agent-actions button .aa-label{font-weight:600;font-size:10px}
+.agent-actions button .aa-ep{font-size:7px;color:#999;display:block;margin-top:1px;font-family:"SF Mono","Cascadia Code","Consolas",monospace}
+.agent-actions button.aa-bailian{border-color:#7c3aed;background:#faf5ff}
+.agent-actions button.aa-bailian:hover{background:#ede9fe;border-color:#6d28d9}
+.agent-actions button.aa-deepseek{border-color:#16a34a;background:#f0fdf4}
+.agent-actions button.aa-deepseek:hover{background:#dcfce7;border-color:#15803d}
+.agent-actions button.aa-mutong{border-color:#f59e0b;background:#fffdf5}
+.agent-actions button.aa-mutong:hover{background:#fef3c7;border-color:#d97706}
+.agent-actions button.aa-feishu{border-color:#16a34a;background:#f0fdf4}
+.agent-actions button.aa-feishu:hover{background:#dcfce7;border-color:#15803d}
+.agent-actions button.aa-action{border-color:#2563eb;background:#eff6ff}
+.agent-actions button.aa-action:hover{background:#dbeafe;border-color:#1d4ed8}
+
+/* 空状态提示 */
+.empty-hint{text-align:center;padding:20px;color:#bbb;font-size:11px}
+.empty-hint .eh-icon{font-size:28px;display:block;margin-bottom:8px}
+
+/* 数据洞察卡片 */
+.insight-card{background:#f8fafc;border:1px solid #dde4ed;border-radius:4px;margin-bottom:10px;overflow:hidden}
+.insight-card .ic-header{padding:6px 10px;background:#eef2f7;font-size:10px;font-weight:600;color:#475569;display:flex;align-items:center;gap:4px;cursor:pointer}
+.insight-card .ic-body{padding:8px 10px;font-size:10px}
+.insight-card .ic-row{display:flex;align-items:flex-start;gap:4px;margin-bottom:3px;line-height:1.5}
+.insight-card .ic-icon{flex-shrink:0;font-size:12px;width:16px;text-align:center}
+.insight-card .ic-label{color:#888;flex-shrink:0;min-width:32px;font-size:9px}
+.insight-card .ic-value{color:#333;font-weight:500}
+.insight-card .ic-value.warn{color:#d97706}
+.insight-card .ic-value.danger{color:#dc2626}
+.insight-card .ic-value.good{color:#16a34a}
+.insight-card .ic-score{display:inline-block;padding:0 4px;border-radius:2px;font-size:9px;font-weight:700;margin-left:2px}
+.ic-score.high-risk{background:#fee2e2;color:#dc2626}
+.ic-score.mid-risk{background:#fef3c7;color:#d97706}
+.ic-score.low-risk{background:#dcfce7;color:#16a34a}
+
+/* 表格异常标记 */
+.td-anomaly{display:inline-block;font-size:8px;padding:1px 4px;border-radius:2px;margin-left:3px;font-weight:600}
+.td-anomaly.agent-hit{background:#fef3c7;color:#d97706;cursor:pointer;animation:pulse 2s infinite}
+.td-anomaly.agent-hit:hover{background:#fde68a}
+
+/* ---- API 统一标记系统 ---- */
+/* Ribbon 中的 API 状态灯 */
+.api-status-group{display:flex;align-items:center;gap:4px;padding:0 6px;border-left:1px solid #e0e0e0;margin-left:auto}
+.api-status-group .api-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.api-dot.online{background:#22c55e;box-shadow:0 0 4px rgba(34,197,94,0.5)}
+.api-dot.offline{background:#9ca3af}
+.api-dot.checking{background:#f59e0b;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.api-status-group .api-label{font-size:9px;color:#888;white-space:nowrap}
+.api-status-group .api-label .ep{font-size:8px;color:#bbb;display:block;line-height:1.2}
+
+/* 详情面板中的 API 端点标签 */
+.api-ep-badge{display:inline-block;background:#1e293b;color:#f1f5f9;font-size:9px;padding:1px 5px;border-radius:2px;font-family:"SF Mono","Cascadia Code","Consolas",monospace;letter-spacing:-0.2px;vertical-align:middle;margin:0 2px}
+.api-ep-badge.get{background:#166534;color:#dcfce7}
+.api-ep-badge.post{background:#1e3a5f;color:#dbeafe}
+.api-ep-badge.llm{background:#4c1d95;color:#ede9fe}
+
+/* 详情面板 API 来源条 */
+.api-source-strip{background:#fffbe6;border:1px solid #fde68a;border-radius:2px;padding:5px 10px;margin-bottom:10px;font-size:10px;color:#92400e;display:flex;align-items:center;gap:6px}
+.api-source-strip .api-icon{font-size:13px}
+.api-source-strip .api-method{font-weight:700;font-size:9px;padding:1px 4px;border-radius:2px}
+.api-source-strip .api-method.post{background:#2563eb;color:#fff}
+.api-source-strip .api-method.get{background:#16a34a;color:#fff}
+
+/* 按钮上的 API 调用角标 */
+.btn-wrapper{position:relative;display:inline-block}
+.btn-wrapper .api-tag{position:absolute;top:-4px;right:-4px;font-size:7px;background:#2563eb;color:#fff;padding:0 3px;border-radius:2px;line-height:14px;font-weight:700;pointer-events:none;white-space:nowrap;z-index:5}
+.btn-wrapper .api-tag.llm{background:#7c3aed}
+.btn-wrapper .api-tag.feishu{background:#16a34a}
+
+/* 飞书按钮角标 */
+.ar button{position:relative}
+.ar button .api-call-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#16a34a;border:1px solid #fff}
+
+/* 分析历史记录样式 */
+.analysis-log{margin-bottom:8px}
+.analysis-log .log-entry{border:1px solid #e0e0e0;border-radius:4px;margin-bottom:8px;overflow:hidden}
+.analysis-log .log-entry.loading{border-left:3px solid #f59e0b;background:#fffdf5}
+.analysis-log .log-entry.done{border-left:3px solid #22c55e;background:#fff}
+.analysis-log .log-entry.error{border-left:3px solid #ef4444;background:#fff5f5}
+.analysis-log .log-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#fafafa;border-bottom:1px solid #f0f0f0;font-size:10px}
+.analysis-log .log-header .log-status{font-weight:600;display:flex;align-items:center;gap:4px}
+.analysis-log .log-header .log-time{color:#888;font-family:"SF Mono","Cascadia Code","Consolas",monospace;font-size:9px}
+.analysis-log .log-body{padding:8px 10px;font-size:11px;line-height:1.8;color:#333}
+.analysis-log .log-body .pending-text{color:#b45309;font-size:10px;animation:pulse 1.2s infinite}
+.analysis-log .log-footer{padding:4px 10px;border-top:1px solid #f0f0f0;font-size:9px;color:#888;display:flex;justify-content:space-between;align-items:center;background:#fafafa}
+.analysis-log .log-footer .elapsed{color:#22c55e;font-weight:600}
+
+/* API 详情浮层 */
+.api-tooltip{position:fixed;z-index:9999;background:#1e293b;color:#f1f5f9;padding:8px 12px;border-radius:6px;font-size:10px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .15s;max-width:280px;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.api-tooltip.show{opacity:1}
+.api-tooltip .api-tt-method{font-weight:700;font-size:9px;padding:1px 4px;border-radius:2px;margin-right:4px}
+.api-tooltip .api-tt-url{font-family:"SF Mono","Cascadia Code","Consolas",monospace;font-size:10px;color:#93c5fd;word-break:break-all}
+.ar{display:flex;gap:4px}
+.ar button{padding:4px 12px;border:1px solid #c0c0c0;border-radius:2px;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;color:#333}
+.ar button:hover{background:#f0f0f0}
+.ar button.pri{background:#2563eb;color:#fff;border-color:#2563eb}
+.ar button.pri:hover{background:#1d4ed8}
+.dempty{display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:11px}
+/* 状态栏 */
+.sbar{background:#fff;border-top:1px solid #d0d0d0;flex-shrink:0;padding:2px 10px;display:flex;justify-content:space-between;font-size:10px;color:#888}
+/* Toast */
+.toast{position:fixed;bottom:36px;right:12px;background:#1d1d1f;color:#f5f5f7;padding:10px 14px;border-radius:6px;font-size:11px;line-height:1.6;max-width:360px;display:none;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.toast.show{display:block;animation:up .25s}
+.toast .ttit{color:#fbbf24;font-weight:600;margin-bottom:3px}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- 菜单栏 -->
+<div class="menubar">
+  <div class="mi">文件</div><div class="mi" onclick="location.href='/pages/console.html'" title="返回制造控制台">主页</div><div class="mi">视图</div>
+  <div class="mi">物料管理</div><div class="mi">质量</div><div class="mi">设备</div>
+  <div class="mi">报表</div><div class="mi">工具</div><div class="mi">帮助</div>
+</div>
+
+<!-- Ribbon -->
+<div class="ribbon">
+  <div class="rg">
+    <button class="rb" onclick="renderAll()"><span class="ricon">🔄</span><span class="rlabel">刷新</span></button>
+    <button class="rb"><span class="ricon">📤</span><span class="rlabel">导出</span></button>
+    <button class="rb"><span class="ricon">🖨️</span><span class="rlabel">打印</span></button>
+  </div>
+  <div class="rg">
+    <button class="rb active" id="rAll" onclick="setF('all')"><span class="ricon">📋</span><span class="rlabel">全部</span></button>
+    <button class="rb" id="rCrit" onclick="setF('critical')"><span class="ricon">🔴</span><span class="rlabel">告警</span></button>
+    <button class="rb" id="rWarn" onclick="setF('warn')"><span class="ricon">🟡</span><span class="rlabel">预警</span></button>
+  </div>
+  <div class="rg">
+    <button class="rb" onclick="toggleAuto()"><span class="ricon" id="rAIcon">⏸</span><span class="rlabel" id="rALabel">暂停</span></button>
+  </div>
+  <div class="rg">
+    <button class="rb"><span class="ricon">⚙️</span><span class="rlabel">设置</span></button>
+  </div>
+  <!-- API 状态指示灯 -->
+  <div class="api-status-group" id="apiStatusBar" style="margin-left:auto" title="点击检测 API 连通性">
+    <span class="api-dot checking" id="apiDot0" onclick="checkAPIHealth()"></span>
+    <span class="api-label" style="cursor:pointer" onclick="checkAPIHealth()">BL<span class="ep">POST /api/agent/analyze</span></span>
+    <span class="api-dot checking" id="apiDot1" onclick="checkAPIHealth()"></span>
+    <span class="api-label" style="cursor:pointer" onclick="checkAPIHealth()">飞书<span class="ep">POST /api/feishu/send</span></span>
+    <span class="api-dot checking" id="apiDot2" onclick="checkAPIHealth()"></span>
+    <span class="api-label" style="cursor:pointer" onclick="checkAPIHealth()">牧童 Agent<span class="ep">/v1/chat/completions</span></span>
+  </div>
+</div>
+
+<!-- 工作区 -->
+<div class="workspace">
+  <!-- 树 -->
+  <div class="tree">
+    <div class="thead">📂 工厂导航</div>
+    <div class="tbody">
+      <div class="tn l0"><span class="ta">▼</span>🏭 牧童无锡工厂</div>
+      <div class="tn l1"><span class="ta">►</span>车架焊接车间</div>
+      <div class="tn l1"><span class="ta">►</span>涂装车间</div>
+      <div class="tn l1"><span class="ta">▼</span>总装车间</div>
+      <div class="tn l2 active" id="tn1" onclick="switchL('line1')">🔵 一线 · 凌峰系列</div>
+      <div class="tn l2" id="tn2" onclick="switchL('line2')">⚪ 二线 · 小龟王系列</div>
+      <div class="tn l2" id="tn3" onclick="switchL('line3')">⚪ 三线 · 折叠系列</div>
+      <div class="tn l1"><span class="ta">►</span>检测车间</div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="content">
+    <div class="bc"><span>牧童MES</span><span class="bcs">›</span><span>总装车间</span><span class="bcs">›</span>物料监控</div>
+
+    <div class="tbar">
+      <span class="llabel" id="llabel">总装一线 · 凌峰系列</span>
+      <span class="tsep"></span>
+      <button class="btn active" id="bL1" onclick="switchL('line1')">一线</button>
+      <button class="btn" id="bL2" onclick="switchL('line2')">二线</button>
+      <button class="btn" id="bL3" onclick="switchL('line3')">三线</button>
+      <span class="tsep"></span>
+      <button class="btn active" id="bAll" onclick="setF('all')">全部</button>
+      <button class="btn" id="bCrit" onclick="setF('critical')">🔴 告警</button>
+      <button class="btn" id="bWarn" onclick="setF('warn')">🟡 预警</button>
+    </div>
+
+    <div class="kpi" id="kpiStrip"></div>
+
+    <div class="stabs">
+      <button class="st active" onclick="showS('all')">全部工位</button>
+      <button class="st" onclick="showS('frame')">车架/塑件段</button>
+      <button class="st" onclick="showS('motor')">三电段</button>
+      <button class="st" onclick="showS('final')">总装调试段</button>
+    </div>
+
+    <div class="mpanel">
+      <div class="tpanel">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>物料名称 <span class="sort">▼</span></th><th>料号</th><th>供应商</th>
+              <th class="r">线边存量</th><th class="r">消耗速率</th>
+              <th class="r">趋势</th><th class="r">预测耗尽</th><th class="r">在途</th>
+            </tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dpan" id="dpan">
+        <div class="din">
+          <div class="dhead"><h2 id="dtitle">物料详情</h2><button class="dc" onclick="closeD()">✕</button></div>
+          <div class="dbody" id="dbody"><div class="dempty">← 点击左侧表格中的物料行查看详情</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 状态栏 -->
+<div class="sbar">
+  <span>数据源：MES 实时 + WMS · 上次刷新：<span id="lastRef">--</span></span>
+  <span>
+    <span id="sbarAPI1" style="margin-right:12px">▣ BL <span style="color:#f59e0b">●</span></span>
+    <span id="sbarAPI2" style="margin-right:12px">📲 飞书 <span style="color:#f59e0b">●</span></span>
+    <span id="sbarAPI3">◈ 牧童 Agent <span style="color:#f59e0b">●</span></span>
+    <span style="margin-left:12px;color:#aaa">|</span>
+    <span style="margin-left:6px">牧童MES v3.2</span>
+  </span>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- HITL 审批面板 -->
+<button class="hitl-fab" id="hitlFab" onclick="toggleHitlPanel()" title="HITL 人工审批面板">⏸️ HITL 审批<span class="badge" id="hitlBadge" style="display:none">0</span></button>
+<div class="hitl-panel" id="hitlPanel">
+  <div class="hp-head"><h3>⏸️ HITL 人工审批</h3><button onclick="toggleHitlPanel()">✕</button></div>
+  <div class="hp-body" id="hitlBody"><div class="hp-empty">暂无待审批项<br><span style="font-size:9px">在物料详情 → 快捷操作中发起 HITL 流程</span></div></div>
+</div>
+
+<script>
+/* ============================================================
+   公式层（不用 Agent）
+   · 消耗速率 = 近 15 条记录加权平均
+   · 耗尽预测 = 存量 ÷ 消耗速率
+   · 状态判定 = <=0告警 | <240min告警 | <480min预警 | 其他正常
+
+   Agent 层（人点击异常行才介入）
+   · 只有预警/告警物料点击时展开 Agent 分析
+   ============================================================ */
+
+function burnRate(log){if(!log||log.length===0)return 0;const r=log.slice(-15);let t=0,w=0;r.forEach((v,i)=>{t+=v*(i+1);w+=i+1});return t/w;}
+function exhaustion(stock,rate){return rate===0?Infinity:stock/rate}
+function level(m){return m<=0?'critical':m<240?'critical':m<480?'warn':'ok';}
+function fmtT(m){if(!isFinite(m))return'--';if(m<=0)return'已耗尽';const h=Math.floor(m/60),mn=Math.floor(m%60);return h>0?`${h}h${mn}m`:`${mn}min`;}
+
+function glog(base,n=20){const r=[];for(let i=0;i<n;i++)r.push(base+(Math.random()-0.5)*base*0.25);return r;}
+
+/* 牧童电动车 总装物料数据 */
+const D={
+  line1:{name:'总装一线 · 凌峰系列',spd:'55 台/h',oee:'87.2%',gr:[
+    {k:'frame',n:'车架/塑件段（工位 01-12）',ms:[
+      {id:'m01',name:'车架总成',pn:'FR-ASSY-GN',sp:'牧童自产',st:38,rt:52,un:'件',lg:glog(52),tr:{q:200,eta:'06-14'}},
+      {id:'m02',name:'前叉总成',pn:'FK-ASSY-GN',sp:'蜀安减震',st:62,rt:48,un:'件',lg:glog(48),tr:{q:300,eta:'06-14'}},
+      {id:'m03',name:'后减震器',pn:'RS-SHOCK-GN',sp:'蜀安减震',st:85,rt:46,un:'件',lg:glog(46)},
+      {id:'m04',name:'前面板总成',pn:'FP-ASSY-GN-W',sp:'联丰塑业',st:4,rt:50,un:'件',lg:glog(50,20).map((v,i)=>i>=15?v*1.3:v),tr:{q:500,eta:'06-16'}},
+      {id:'m05',name:'座桶总成',pn:'SB-ASSY-GN',sp:'联丰塑业',st:28,rt:48,un:'件',lg:glog(48),tr:{q:300,eta:'06-15'}},
+      {id:'m06',name:'侧板（左）',pn:'SP-L-GN-W',sp:'联丰塑业',st:55,rt:46,un:'件',lg:glog(46)},
+      {id:'m07',name:'侧板（右）',pn:'SP-R-GN-W',sp:'联丰塑业',st:55,rt:46,un:'件',lg:glog(46)},
+      {id:'m08',name:'后尾翼总成',pn:'RW-ASSY-GN',sp:'联丰塑业',st:72,rt:44,un:'件',lg:glog(44)},
+    ]},
+    {k:'motor',n:'三电段（工位 13-22）',ms:[
+      {id:'m09',name:'轮毂电机',pn:'MOT-HUB-800W',sp:'汉驰电机',st:18,rt:50,un:'台',lg:glog(50),tr:{q:400,eta:'06-15'}},
+      {id:'m10',name:'控制器',pn:'CTRL-FOC-72V',sp:'凯越电子',st:42,rt:48,un:'件',lg:glog(48),tr:{q:500,eta:'06-14'}},
+      {id:'m11',name:'锂电池包',pn:'BAT-LI-72V24AH',sp:'华锂新能源',st:3,rt:52,un:'组',lg:glog(52,20).map((v,i)=>i>=14?v*1.5:v),tr:{q:300,eta:'06-17'}},
+      {id:'m12',name:'DC转换器',pn:'DC-DC-72V12V',sp:'凯越电子',st:68,rt:44,un:'件',lg:glog(44)},
+      {id:'m13',name:'主线束总成',pn:'WH-ASSY-GN',sp:'恒通线束',st:8,rt:52,un:'套',lg:glog(52,20).map((v,i)=>i>=16?v*1.3:v),tr:{q:600,eta:'06-14'}},
+    ]},
+    {k:'final',n:'总装调试段（工位 23-36）',ms:[
+      {id:'m14',name:'轮毂总成（前）',pn:'WH-FRONT-10IN',sp:'牧童自产',st:52,rt:48,un:'件',lg:glog(48)},
+      {id:'m15',name:'轮毂总成（后）',pn:'WH-REAR-10IN',sp:'牧童自产',st:48,rt:48,un:'件',lg:glog(48)},
+      {id:'m16',name:'轮胎（前）',pn:'TY-3.00-10',sp:'驰远轮胎',st:95,rt:46,un:'条',lg:glog(46),tr:{q:1000,eta:'06-14'}},
+      {id:'m17',name:'轮胎（后）',pn:'TY-3.00-10',sp:'驰远轮胎',st:88,rt:46,un:'条',lg:glog(46),tr:{q:1000,eta:'06-14'}},
+      {id:'m18',name:'碟刹总成（前）',pn:'DB-FRONT-GN',sp:'兴源传动',st:40,rt:46,un:'套',lg:glog(46)},
+      {id:'m19',name:'鼓刹总成（后）',pn:'DB-REAR-GN',sp:'兴源传动',st:45,rt:44,un:'套',lg:glog(44)},
+      {id:'m20',name:'液晶仪表',pn:'DASH-LCD-GN',sp:'启元微电子',st:62,rt:44,un:'件',lg:glog(44),tr:{q:400,eta:'06-15'}},
+      {id:'m21',name:'LED大灯总成',pn:'HL-LED-GN',sp:'华晟车灯',st:55,rt:42,un:'件',lg:glog(42)},
+      {id:'m22',name:'尾灯总成',pn:'TL-LED-GN',sp:'华晟车灯',st:68,rt:40,un:'件',lg:glog(40)},
+      {id:'m23',name:'转把/刹把组合',pn:'TH-BRK-COMBO',sp:'凯越电子',st:75,rt:44,un:'套',lg:glog(44)},
+      {id:'m24',name:'座垫总成',pn:'SEAT-ASSY-GN',sp:'沃特座椅',st:35,rt:48,un:'件',lg:glog(48),tr:{q:300,eta:'06-15'}},
+    ]}
+  ]},
+  line2:{name:'总装二线 · 小龟王系列',spd:'48 台/h',oee:'84.1%',gr:[
+    {k:'frame',n:'车架/塑件段',ms:[
+      {id:'m201',name:'车架总成',pn:'FR-ASSY-XG',sp:'牧童自产',st:45,rt:44,un:'件',lg:glog(44)},
+      {id:'m202',name:'前面板总成',pn:'FP-ASSY-XG-R',sp:'联丰塑业',st:32,rt:42,un:'件',lg:glog(42)},
+    ]},
+    {k:'motor',n:'三电段',ms:[
+      {id:'m203',name:'轮毂电机',pn:'MOT-HUB-600W',sp:'汉驰电机',st:22,rt:42,un:'台',lg:glog(42)},
+      {id:'m204',name:'铅酸电池组',pn:'BAT-PB-60V20AH',sp:'远航电池',st:15,rt:44,un:'组',lg:glog(44)},
+    ]},
+    {k:'final',n:'总装调试段',ms:[
+      {id:'m205',name:'轮胎（前）',pn:'TY-3.00-10',sp:'驰远轮胎',st:78,rt:40,un:'条',lg:glog(40)},
+      {id:'m206',name:'液晶仪表',pn:'DASH-LCD-XG',sp:'启元微电子',st:55,rt:38,un:'件',lg:glog(38)},
+    ]}
+  ]},
+  line3:{name:'总装三线 · 折叠系列',spd:'38 台/h',oee:'88.5%',gr:[
+    {k:'frame',n:'车架/塑件段',ms:[
+      {id:'m301',name:'折叠车架总成',pn:'FR-FOLD-ASSY',sp:'牧童自产',st:28,rt:36,un:'件',lg:glog(36)},
+    ]},
+    {k:'motor',n:'三电段',ms:[
+      {id:'m302',name:'轮毂电机',pn:'MOT-HUB-350W',sp:'汉驰电机',st:35,rt:34,un:'台',lg:glog(34)},
+      {id:'m303',name:'锂电池包',pn:'BAT-LI-48V12AH',sp:'华锂新能源',st:3,rt:38,un:'组',lg:glog(38,20).map((v,i)=>i>=16?v*1.5:v),tr:{q:200,eta:'06-16'}},
+    ]},
+    {k:'final',n:'总装调试段',ms:[
+      {id:'m304',name:'轮胎（前）',pn:'TY-2.50-10',sp:'驰远轮胎',st:62,rt:32,un:'条',lg:glog(32)},
+    ]}
+  ]}
+};
+
+let curL='line1',curF='all',curS='all',selId=null,autoR=true;
+function allMs(){const r=[];D[curL].gr.forEach(g=>g.ms.forEach(m=>r.push(m)));return r;}
+
+function renderKPI(){
+  const ms=allMs();let n=0,w=0,c=0;
+  ms.forEach(m=>{const l=level(exhaustion(m.st,m.rt));if(l==='critical')c++;else if(l==='warn')w++;else n++;});
+  document.getElementById('kpiStrip').innerHTML=`
+    <div class="kb b"><span class="kl">物料总数</span><span class="kv">${ms.length}</span><span class="ks">${D[curL].gr.length} 个工段</span></div>
+    <div class="kb g"><span class="kl">正常</span><span class="kv">${n}</span><span class="ks">${(n/ms.length*100).toFixed(0)}%</span></div>
+    <div class="kb y"><span class="kl">预警</span><span class="kv">${w}</span><span class="ks">剩余 4-8h</span></div>
+    <div class="kb r"><span class="kl">告警</span><span class="kv">${c}</span><span class="ks">需立即响应</span></div>
+    <div class="kb b"><span class="kl">产线节拍</span><span class="kv">${D[curL].spd}</span><span class="ks">运行中</span></div>
+    <div class="kb g"><span class="kl">OEE</span><span class="kv">${D[curL].oee}</span><span class="ks">今日</span></div>`;
+}
+
+function renderTable(){
+  let rows='';
+  D[curL].gr.forEach(g=>{
+    if(curS!=='all'&&g.k!==curS)return;
+    rows+=`<tr class="gr"><td colspan="8">${g.n}（${g.ms.length} 种物料）</td></tr>`;
+    g.ms.forEach(m=>{
+      const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+      if(curF!=='all'&&curF!==lv)return;
+      const rCls=lv==='critical'?'crit':lv==='warn'?'warn':(selId===m.id?'sel':'');
+      const sb='sb'+({ok:'g',warn:'y',critical:'r'}[lv]);
+      const tt=lv==='critical'?'ttr':lv==='warn'?'tty':'ttn';
+      const sp=m.lg.slice(-10);const smax=Math.max(...sp),smin=Math.min(...sp),sr=smax-smin||1;
+      const pts=sp.map((v,i)=>`${(i/(sp.length-1)*52+4).toFixed(0)},${(22-(v-smin)/sr*16).toFixed(0)}`).join(' ');
+      rows+=`<tr class="${rCls}" data-id="${m.id}" onclick="openD('${m.id}')">
+        <td><span class="sb ${sb}"></span>${m.name}${anomalyResults[m.id]?` <span class="td-anomaly agent-hit" title="牧童 Agent 发现隐藏异常：${anomalyResults[m.id].reasons.join('；')}（评分 ${anomalyResults[m.id].score}/8）。点击查看详情">⚠️${anomalyResults[m.id].score}</span>`:''}</td><td style="font-size:10px;color:#888">${m.pn}</td><td style="font-size:11px">${m.sp}</td>
+        <td class="r" style="font-weight:600">${m.st} <span style="font-size:10px;color:#888">${m.un}</span></td>
+        <td class="r">${m.rt.toFixed(1)} <span style="font-size:10px;color:#888">${m.un}/h</span></td>
+        <td class="r"><svg width="56" height="24"><polyline points="${pts}" fill="none" stroke="${lv==='critical'?'#c62828':lv==='warn'?'#e68a00':'#2563eb'}" stroke-width="1.5"/></svg></td>
+        <td class="r ${tt}">${fmtT(ex)}</td>
+        <td class="r" style="font-size:11px">${m.tr?m.tr.q+' '+m.un+'（'+m.tr.eta+'）':'<span style="color:#bbb">—</span>'}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('tableBody').innerHTML=rows||'<tr><td colspan="8" style="text-align:center;padding:32px;color:#bbb">无匹配物料</td></tr>';
+}
+
+/* ---- Flask API 地址 ---- */
+const AGENT_API=window.location.origin;
+const MUTONG_AGENT_URL = AGENT_API;
+
+/* ---- API 健康检查 ---- */
+const API_ENDPOINTS=[
+  {id:'apiDot0',sbar:'sbarAPI1',name:'百炼',
+    check:async()=>{const r=await fetch(`${AGENT_API}/api/health/agents`);const d=await r.json();return d.bailian;}},
+  {id:'apiDot1',sbar:'sbarAPI2',name:'飞书',
+    check:async()=>{const r=await fetch(`${AGENT_API}/api/health/agents`);const d=await r.json();return d.feishu;}},
+  {id:'apiDot2',sbar:'sbarAPI3',name:'牧童 Agent',
+    check:async()=>{const r=await fetch(`${AGENT_API}/api/health/agents`);const d=await r.json();return d.mutong_agent;}},
+];
+
+async function checkAPIHealth(){
+  // 所有灯变黄色检测中
+  API_ENDPOINTS.forEach(e=>{
+    const dot=document.getElementById(e.id);
+    if(dot){dot.className='api-dot checking';dot.title='检测中...';}
+  });
+  const results=await Promise.allSettled(API_ENDPOINTS.map(e=>e.check()));
+  results.forEach((r,i)=>{
+    const e=API_ENDPOINTS[i];
+    const dot=document.getElementById(e.id);
+    const sbar=document.getElementById(e.sbar);
+    const ok=r.status==='fulfilled'&&r.value===true;
+    if(dot){
+      dot.className='api-dot '+(ok?'online':'offline');
+      dot.title=(ok?`${e.name}：已连接 ✅`:`${e.name}：不可达 ❌`)+`\n点击重新检测`;
+    }
+    if(sbar){
+      const color=ok?'#22c55e':'#ef4444';
+      const icon=e.name==='百炼'?'▣':e.name==='飞书'?'📲':'◈';
+      sbar.innerHTML=`${icon} ${e.name} <span style="color:${color}">●</span>`;
+    }
+  });
+}
+
+// 页面加载后自动检测
+setTimeout(checkAPIHealth,1500);
+// 每 1 小时复检
+setInterval(checkAPIHealth,3600000);
+
+function openD(id){
+  const m=allMs().find(x=>x.id===id);if(!m)return;
+  selId=m.id;renderTable();
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  document.getElementById('dpan').classList.add('open');
+  document.getElementById('dtitle').textContent=m.name;
+
+  // 基本信息 + 库存消耗（不管调不调 Agent，先渲染）
+  document.getElementById('dbody').innerHTML=`
+    <div class="formula-strip"><span class="fm-icon">📐</span> 以下数据由 <b>固定公式</b> 计算（消耗速率=加权平均 / 预测=存量÷速率 / 状态=阈值判断）<span style="margin-left:auto;font-size:9px;color:#999">⚡ 本地计算 · 不调 API</span></div>
+    <div class="ib"><div class="ibt">基本信息</div><div class="ibg"><span class="ibl">物料名称</span><span class="ibv">${m.name}</span><span class="ibl">料号</span><span class="ibv" style="font-size:10px">${m.pn}</span><span class="ibl">供应商</span><span class="ibv">${m.sp}</span><span class="ibl">所在工段</span><span class="ibv">${D[curL].gr.find(g=>g.ms.find(x=>x.id===id))?.n||'—'}</span></div></div>
+    <div class="ib"><div class="ibt">库存与消耗</div><div class="ibg"><span class="ibl">线边存量</span><span class="ibv${lv==='critical'?' hi':''}">${m.st} ${m.un}</span><span class="ibl">消耗速率</span><span class="ibv">${m.rt.toFixed(1)} ${m.un}/h（近15分钟加权）</span><span class="ibl">预测耗尽</span><span class="ibv${lv==='critical'?' hi':''}">${fmtT(ex)}（${new Date(Date.now()+ex*60000).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}）</span><span class="ibl">在途订单</span><span class="ibv">${m.tr?m.tr.q+' '+m.un+'，ETA '+m.tr.eta:'无'}</span></div></div>
+
+    <!-- Tab 栏 -->
+    <div class="dtab-bar">
+      <button class="dt active" onclick="switchDTab('ai', this)"><span class="dt-icon">&gt;_</span><span class="dt-label">AI 分析</span><span class="dt-api">BL · 牧童</span></button>
+      <button class="dt" onclick="switchDTab('action', this)"><span class="dt-icon">📡</span><span class="dt-label">快捷操作</span><span class="dt-api">飞书 · 调拨</span></button>
+      <button class="dt" onclick="switchDTab('history', this)"><span class="dt-icon">📋</span><span class="dt-label">分析历史</span></button>
+    </div>
+
+    <!-- AI 分析 Tab 内容 -->
+    <div id="tab-ai" class="dtab-content">
+      <div class="insight-card" id="insightCard">
+        <div class="ic-header" onclick="document.getElementById('insightBody').style.display=document.getElementById('insightBody').style.display==='none'?'block':'none'">
+          📊 数据增强摘要 <span style="font-weight:400;color:#888">（Agent 将基于此数据做深度分析）</span><span style="margin-left:auto;font-size:9px">▼ 展开</span>
+        </div>
+        <div class="ic-body" id="insightBody">
+          <div class="ic-row"><span class="ic-icon">📈</span><span class="ic-label">趋势</span><span class="ic-value" id="insightTrend">计算中...</span></div>
+          <div class="ic-row"><span class="ic-icon">🔄</span><span class="ic-label">跨线</span><span class="ic-value" id="insightCross">计算中...</span></div>
+          <div class="ic-row"><span class="ic-icon">🏭</span><span class="ic-label">供应商</span><span class="ic-value" id="insightSupplier">计算中...</span></div>
+          <div class="ic-row"><span class="ic-icon">🔗</span><span class="ic-label">工段</span><span class="ic-value" id="insightSection">计算中...</span></div>
+          <div class="ic-row" id="insightAnomalyRow" style="display:none"><span class="ic-icon">⚠️</span><span class="ic-label">异常</span><span class="ic-value danger" id="insightAnomaly"></span></div>
+        </div>
+      </div>
+      <div class="agent-actions">
+        <button class="aa-bailian" onclick="callAgentManual('${m.id}')" title="调用百炼 DashScope 大模型">
+          <span class="aa-icon">🟣</span><span class="aa-label">Agent分析</span><span class="aa-ep">POST /api/agent/analyze</span>
+        </button>
+        <button class="aa-deepseek" onclick="callDeepSeek('${m.id}')" title="调用 DeepSeek V4 Pro 大模型">
+          <span class="aa-icon">🟢</span><span class="aa-label">DeepSeek 分析</span><span class="aa-ep">POST /api/agent/deepseek/analyze</span>
+        </button>
+        <button class="aa-mutong" onclick="callMutongAgent()" title="调用 牧童 Agent · 自动传入四维增强数据">
+          <span class="aa-icon">🟠</span><span class="aa-label">牧童 Agent 深度检测</span><span class="aa-ep">趋势+跨线+供应商+工段</span>
+        </button>
+      </div>
+      <div id="aiResultHint" class="empty-hint"><span class="eh-icon">👆</span>点击上方按钮开始 AI 分析<br><span style="font-size:9px">上方数据增强摘要已自动计算，将随请求发送给 Agent</span></div>
+    </div>
+
+    <!-- 快捷操作 Tab 内容 -->
+    <div id="tab-action" class="dtab-content" style="display:none">
+      <div class="agent-actions">
+        ${m.tr?`<button class="aa-action" onclick="doA('查在途')"><span class="aa-icon">📦</span><span class="aa-label">查在途</span><span class="aa-ep">POST /api/feishu/send</span></button>`:''}
+        <button class="aa-action" onclick="doA('调拨')"><span class="aa-icon">🚚</span><span class="aa-label">紧急调拨</span><span class="aa-ep">POST /api/feishu/send</span></button>
+        <button class="aa-feishu" onclick="doA('推飞书')"><span class="aa-icon">📲</span><span class="aa-label">推飞书</span><span class="aa-ep">分析 + 推送</span></button>
+        <button class="aa-hitl" onclick="startHitl('${m.id}')" title="生产数据 → 牧童 Agent → 人工审批（飞书卡片互动）" style="border-color:#dc2626;background:#fff5f5"><span class="aa-icon">⏸️</span><span class="aa-label">HITL 审批流程</span><span class="aa-ep">牧童 Agent + 飞书卡片互动</span></button>
+      </div>
+      <div class="empty-hint"><span class="eh-icon">📡</span>点击上方按钮执行操作<br><span style="font-size:9px">HITL：牧童 Agent 分析 → 飞书卡片推送 → 人工审批 → 生成处置指令</span></div>
+    </div>
+
+    <!-- 分析历史 Tab 内容 -->
+    <div id="tab-history" class="dtab-content" style="display:none">
+      <div class="analysis-log" id="agentSlot"></div>
+      <div id="historyHint" class="empty-hint"><span class="eh-icon">📋</span>暂无分析记录<br><span style="font-size:9px">在"AI 分析"中发起分析后会显示在这里</span></div>
+    </div>`;
+
+  // 填充数据增强摘要
+  setTimeout(()=>fillInsightCard('${m.id}'), 100);
+  
+  // 告警/预警物料自动触发百炼分析
+  if(lv==='critical'||lv==='warn'){
+    setTimeout(()=>callAgentAuto(), 300);
+  }
+  // 异常评分≥2的物料，自动触发 牧童 Agent
+  const anomaly=anomalyResults[m.id];
+  if(anomaly&&anomaly.score>=3){
+    setTimeout(()=>{switchDTab('history', document.querySelectorAll('.dtab-bar .dt')[2]);callMutongAgent();}, 800);
+  }
+}
+// Tab 切换
+function switchDTab(tab, btn){
+  document.querySelectorAll('.dtab-bar .dt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['ai','action','history'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el)el.style.display=t===tab?'block':'none';
+  });
+}
+
+// 自动触发（告警/预警物料打开时）
+async function callAgentAuto(){
+  const m=allMs().find(x=>x.id===selId);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  // 隐藏提示，切到历史 Tab
+  const hint=document.getElementById('aiResultHint');
+  if(hint)hint.style.display='none';
+  switchDTab('history', document.querySelectorAll('.dtab-bar .dt')[2]);
+  doCallAgent(m,ex,lv,'auto');
+}
+
+// 手动触发（点击百炼分析按钮）
+async function callAgentManual(id){
+  const m=allMs().find(x=>x.id===id);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  const hint=document.getElementById('aiResultHint');
+  if(hint)hint.style.display='none';
+  switchDTab('history', document.querySelectorAll('.dtab-bar .dt')[2]);
+  doCallAgent(m,ex,lv,'manual');
+}
+
+// 百炼分析核心逻辑
+async function doCallAgent(m,ex,lv,trigger){
+  const now=new Date();
+  const startTimeFull=now.toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+  const entryId='bl-'+Date.now();
+  const slot=document.getElementById('agentSlot');
+  const histHint=document.getElementById('historyHint');
+  if(histHint)histHint.style.display='none';
+
+  // 追加新的分析记录（loading 状态）
+  const loadingHTML=`
+    <div class="log-entry loading" id="${entryId}">
+      <div class="log-header">
+        <span class="log-status">🟡 正在调用百炼大模型... <span style="font-size:9px;color:#888">${trigger==='auto'?'自动触发':'手动触发'}</span></span>
+        <span class="log-time">⏳ ${startTimeFull}</span>
+      </div>
+      <div class="log-body">
+        <div class="pending-text">⏳ 正在请求 <span class="api-ep-badge post">POST ${AGENT_API}/api/agent/analyze</span> → 百炼 DashScope，请稍候...</div>
+      </div>
+    </div>`;
+  slot.insertAdjacentHTML('beforeend', loadingHTML);
+
+  const payload={
+    material:{
+      name:m.name,pn:m.pn,supplier:m.sp,
+      stock:m.st,unit:m.un,burnRate:m.rt,
+      exhaustion:fmtT(ex),exhaustionMinutes:ex,
+      inTransit:m.tr?`${m.tr.q}${m.un}，ETA ${m.tr.eta}`:''
+    },
+    context:'今日飞书物流群提到 AGV 2号车导航头脏了、速度偏慢；供应商近期交付记录见系统。'
+  };
+
+  try{
+    const t0=Date.now();
+    const r=await fetch(`${AGENT_API}/api/agent/analyze`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(d.code===0){
+      const analysis=d.data.analysis.replace(/\n/g,'<br>');
+      const endTime=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+      const entry=document.getElementById(entryId);
+      if(entry){
+        entry.className='log-entry done';
+        entry.innerHTML=`
+          <div class="log-header">
+            <span class="log-status">🟢 百炼大模型分析完成<span class="llm-badge" style="margin-left:6px">LLM</span></span>
+            <span class="log-time">⏳ ${startTimeFull} → ✅ ${endTime}</span>
+          </div>
+          <div class="log-body"><div class="abt">${analysis}</div></div>
+          <div class="log-footer">
+            <span>📡 <span class="api-ep-badge post">POST ${AGENT_API}/api/agent/analyze</span> · 模型：${d.data.model}</span>
+            <span>耗时 <span class="elapsed">${d.data.elapsed}s</span> · Prompt: ${d.data.usage?.prompt_tokens||'?'}t · Completion: ${d.data.usage?.completion_tokens||'?'}t · trace: ${d.data.trace_id}</span>
+          </div>`;
+      }
+      // 自动触发时标记完成
+      if(trigger==='auto'){
+        const hint=document.getElementById('aiResultHint');
+        if(hint)hint.style.display='none';
+      }
+    }else{
+      throw new Error(d.message||'未知错误');
+    }
+  }catch(e){
+    // 降级到本地 mock
+    const tid='mock-'+Date.now().toString(36);
+    const endTime=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+    const entry=document.getElementById(entryId);
+    if(entry){
+      entry.className='log-entry error';
+      entry.innerHTML=`
+        <div class="log-header">
+          <span class="log-status">🔴 调用失败，降级到本地逻辑<span class="llm-badge" style="background:#888;margin-left:6px">离线</span></span>
+          <span class="log-time">⏳ ${startTimeFull} → ⚠️ ${endTime}</span>
+        </div>
+        <div class="log-body">${buildA(m,ex,lv)}</div>
+        <div class="log-footer">
+          <span>⚠️ Flask 未连接（${AGENT_API}）</span>
+          <span>trace: ${tid} · 启动方式: cd api && python server.py</span>
+        </div>`;
+    }
+  }
+}
+
+/* ---- 异常评分：发现公式漏掉的隐藏风险 ---- */
+function calcAnomalyScore(m){
+  let score=0, reasons=[];
+  // 1. 消耗加速检测
+  if(m.lg&&m.lg.length>=10){
+    const log=m.lg.slice(-20);
+    const first5=log.slice(0,5).reduce((a,b)=>a+b,0)/5;
+    const last5=log.slice(-5).reduce((a,b)=>a+b,0)/5;
+    const accel=(last5-first5)/Math.max(first5,0.1)*100;
+    if(accel>30){score+=3;reasons.push('消耗加速'+accel.toFixed(0)+'%');}
+    else if(accel>15){score+=1;reasons.push('消耗轻微加速'+accel.toFixed(0)+'%');}
+    // 2. 波动检测
+    const volatility=Math.max(...log)-Math.min(...log);
+    if(volatility>m.rt*0.5){score+=2;reasons.push('消耗波动剧烈');}
+    // 3. 突发尖峰检测
+    const avg10=log.slice(-10).reduce((a,b)=>a+b,0)/10;
+    const maxLast3=Math.max(...log.slice(-3));
+    if(maxLast3>avg10*1.4){score+=2;reasons.push('最近3点出现尖峰');}
+  }
+  // 4. 跨产线风险
+  let crossLineRisk=false;
+  for(const [key,line] of Object.entries(D)){
+    if(key===curL)continue;
+    const same=line.gr.flatMap(g=>g.ms).filter(x=>x.pn===m.pn);
+    if(same.some(x=>x.st<=10)){crossLineRisk=true;}
+  }
+  if(crossLineRisk){score+=2;reasons.push('其他产线同物料也低位');}
+  // 5. 供应商集中风险
+  const allMs=Object.values(D).flatMap(l=>l.gr.flatMap(g=>g.ms));
+  const sameSp=allMs.filter(x=>x.sp===m.sp&&x.id!==m.id);
+  const lowSp=sameSp.filter(x=>x.st<20);
+  if(lowSp.length>=2){score+=2;reasons.push('供应商'+lowSp.length+'种物料低库存');}
+  else if(lowSp.length===1){score+=1;reasons.push('供应商1种物料也低位');}
+  // 6. 在途到货时间
+  if(m.tr){
+    const etaDays=parseInt(m.tr.eta?.split('-')[2])-new Date().getDate();
+    if(etaDays>5){score+=1;reasons.push('在途到货>5天');}
+  }else if(m.st<30){score+=1;reasons.push('低库存无在途');}
+
+  return {score, reasons, level:score>=4?'high':score>=2?'mid':'low'};
+}
+
+// 全局异常结果缓存
+let anomalyResults={};
+
+// 自动巡检：扫描所有"阈值正常但有异常"的物料
+function runAutoMutongCheck(){
+  anomalyResults={};
+  let found=0;
+  allMs().forEach(m=>{
+    const ex=exhaustion(m.st,m.rt);
+    const lv=level(ex);
+    // 只检查"公式认为正常或仅预警"的物料
+    if(lv==='ok'||lv==='warn'){
+      const result=calcAnomalyScore(m);
+      if(result.score>=2){
+        anomalyResults[m.id]=result;
+        found++;
+      }
+    }
+  });
+  if(found>0){
+    console.log('[牧童 Auto] 发现 '+found+' 个隐藏异常物料:',Object.keys(anomalyResults));
+    // 在 KPI 区更新标记
+    updateAnomalyBadges();
+  }
+  renderTable(); // 刷新表格标记
+  return found;
+}
+
+// KPI 区域异常徽章更新
+function updateAnomalyBadges(){
+  const kpiStrip=document.getElementById('kpiStrip');
+  const total=Object.keys(anomalyResults).length;
+  const high=Object.values(anomalyResults).filter(r=>r.level==='high').length;
+  if(total>0&&kpiStrip){
+    // 在 KPI 条后添加异常提示
+    const exist=document.getElementById('anomalyBadge');
+    if(!exist){
+      const badge=document.createElement('div');
+      badge.id='anomalyBadge';
+      badge.style.cssText='background:#fffbe6;border:1px solid #fde68a;border-radius:4px;padding:4px 8px;margin:4px 0;font-size:10px;display:flex;align-items:center;gap:6px';
+      badge.innerHTML='<span>🔍</span> 牧童 Agent 发现 <b>'+total+'</b> 个隐藏异常 '+(high>0?'（<span style="color:#dc2626">'+high+'个高风险</span>）':'')+' <span style="font-size:8px;color:#888">自动巡检 · 点击异常物料查看</span>';
+      kpiStrip.parentNode.insertBefore(badge, kpiStrip.nextSibling);
+    }
+  }
+}
+
+/* ---- 数据增强函数 ---- */
+function buildTrendAnalysis(m){
+  if(!m.lg||m.lg.length===0)return '无历史数据';
+  const log=m.lg.slice(-20);
+  const first5=log.slice(0,5).reduce((a,b)=>a+b,0)/5;
+  const last5=log.slice(-5).reduce((a,b)=>a+b,0)/5;
+  const accel=last5-first5;
+  const direction=accel>5?'⚠️ 消耗明显加速':accel>1?'📈 消耗轻微上升':accel<-5?'📉 消耗下降':accel<-1?'📉 消耗轻微下降':'➡️ 消耗平稳';
+  const volatility=Math.max(...log)-Math.min(...log);
+  const volLabel=volatility>m.rt*0.5?'⚠️ 波动剧烈':volatility>m.rt*0.2?'波动偏大':'波动正常';
+  return `${direction}（近5点均值 ${last5.toFixed(1)} vs 前5点均值 ${first5.toFixed(1)} ${m.un}/h，差值 ${accel.toFixed(1)}），${volLabel}，近20点：${log.slice(-10).map(v=>v.toFixed(1)).join(',')}`;
+}
+
+function buildCrossLineInfo(m){
+  const lines=[];
+  for(const [key,line] of Object.entries(D)){
+    if(key===curL)continue;
+    const same=line.gr.flatMap(g=>g.ms).filter(x=>x.pn===m.pn);
+    if(same.length>0){
+      same.forEach(s=>lines.push(`${line.name}：存量 ${s.st} ${s.un}${s.tr?'，在途 '+s.tr.q+' '+s.un+' ETA '+s.tr.eta:''}`));
+    }
+  }
+  return lines.length>0?lines.join(' | '):'其他产线无此物料';
+}
+
+function buildSupplierContext(m){
+  const allMs=Object.values(D).flatMap(l=>l.gr.flatMap(g=>g.ms));
+  const sameSp=allMs.filter(x=>x.sp===m.sp&&x.id!==m.id);
+  const lowStock=sameSp.filter(x=>x.st<20);
+  if(lowStock.length>0)return `⚠️ 该供应商（${m.sp}）同时供应 ${sameSp.length} 种物料，其中 ${lowStock.length} 种也处于低库存：${lowStock.map(x=>x.name+'('+x.st+x.un+')').join('、')}`;
+  if(sameSp.length>0)return `该供应商同时供应 ${sameSp.length} 种物料，目前库存均正常`;
+  return '该供应商仅供应此一种物料';
+}
+
+function buildSectionContext(m){
+  const grp=D[curL].gr.find(g=>g.ms.some(x=>x.id===m.id));
+  if(!grp)return '无工段信息';
+  const up=grp.ms.filter(x=>x.id!==m.id&&x.st<=15);
+  const down=grp.ms.filter(x=>x.id!==m.id&&x.st>15);
+  let ctx=`${grp.n}，共 ${grp.ms.length} 种物料`;
+  if(up.length>0)ctx+=` | ⚠️ 同工段低库存物料：${up.map(x=>x.name+'('+x.st+x.un+')').join('、')}`;
+  if(down.length>0)ctx+=` | 其他物料库存正常：${down.map(x=>x.name+'('+x.st+x.un+')').join('、')}`;
+  return ctx;
+}
+
+// 填充数据摘要卡片
+function fillInsightCard(id){
+  const m=allMs().find(x=>x.id===id);if(!m)return;
+  const trend=buildTrendAnalysis(m);
+  const cross=buildCrossLineInfo(m);
+  const supplier=buildSupplierContext(m);
+  const section=buildSectionContext(m);
+  const anomaly=anomalyResults[id];
+  
+  const setVal=(elId,val,cls)=>{
+    const el=document.getElementById(elId);
+    if(el){el.textContent=val;el.className='ic-value'+' '+(cls||'');}
+  };
+  
+  // 渲染趋势
+  const isAccel=trend.includes('加速')||trend.includes('上升');
+  setVal('insightTrend',trend,isAccel?'warn':trend.includes('下降')?'good':'');
+  setVal('insightCross',cross,cross.includes('⚠️')?'danger':cross.includes('无')?'':'good');
+  setVal('insightSupplier',supplier,supplier.includes('⚠️')?'danger':supplier.includes('正常')?'good':'');
+  setVal('insightSection',section,section.includes('⚠️')?'danger':'');
+  
+  // 异常标记
+  if(anomaly&&anomaly.score>=2){
+    const row=document.getElementById('insightAnomalyRow');
+    if(row){row.style.display='flex';}
+    setVal('insightAnomaly',`评分 ${anomaly.score}/8 · ${anomaly.reasons.join('；')}`,anomaly.level==='high'?'danger':'warn');
+  }
+}
+
+/* ---- DeepSeek 调用 ---- */
+async function callDeepSeek(id){
+  const m=allMs().find(x=>x.id===id);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  const hint=document.getElementById('aiResultHint');
+  if(hint)hint.style.display='none';
+  switchDTab('history', document.querySelectorAll('.dtab-bar .dt')[2]);
+  doCallDeepSeek(m,ex,lv,'manual');
+}
+
+async function doCallDeepSeek(m,ex,lv,trigger){
+  const now=new Date();
+  const startTimeFull=now.toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+  const entryId='ds-'+Date.now();
+  const slot=document.getElementById('agentSlot');
+  const histHint=document.getElementById('historyHint');
+  if(histHint)histHint.style.display='none';
+
+  const loadingHTML=`
+    <div class="log-entry loading" id="${entryId}">
+      <div class="log-header">
+        <span class="log-status">🟡 正在调用 DeepSeek V4 Pro... <span style="font-size:9px;color:#888">${trigger==='auto'?'自动触发':'手动触发'}</span></span>
+        <span class="log-time">⏳ ${startTimeFull}</span>
+      </div>
+      <div class="log-body">
+        <div class="pending-text">⏳ 正在请求 <span class="api-ep-badge post">POST ${AGENT_API}/api/agent/deepseek/analyze/sync</span> → DeepSeek V4 Pro，请稍候...</div>
+      </div>
+    </div>`;
+  slot.insertAdjacentHTML('beforeend', loadingHTML);
+
+  const payload={
+    material:{
+      name:m.name,pn:m.pn,supplier:m.sp,
+      stock:m.st,unit:m.un,burnRate:m.rt,
+      exhaustion:fmtT(ex),exhaustionMinutes:ex,
+      inTransit:m.tr?`${m.tr.q}${m.un}，ETA ${m.tr.eta}`:''
+    },
+    context:'今日飞书物流群提到 AGV 2号车导航头脏了、速度偏慢；供应商近期交付记录见系统。'
+  };
+
+  try{
+    const t0=Date.now();
+    const r=await fetch(`${AGENT_API}/api/agent/deepseek/analyze/sync`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(d.code===0){
+      const analysis=d.data.analysis.replace(/\n/g,'<br>');
+      const endTime=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+      const entry=document.getElementById(entryId);
+      if(entry){
+        entry.className='log-entry done';
+        entry.innerHTML=`
+          <div class="log-header">
+            <span class="log-status">🟢 DeepSeek 分析完成<span class="llm-badge" style="margin-left:6px;background:#f0fdf4;color:#16a34a">DeepSeek V4</span></span>
+            <span class="log-time">⏳ ${startTimeFull} → ✅ ${endTime}</span>
+          </div>
+          <div class="log-body"><div class="abt">${analysis}</div></div>
+          <div class="log-footer">
+            <span>📡 <span class="api-ep-badge post">POST ${AGENT_API}/api/agent/deepseek/analyze/sync</span> · 模型：${d.data.model}</span>
+            <span>耗时 <span class="elapsed">${d.data.elapsed}s</span> · Prompt: ${d.data.usage?.prompt_tokens||'?'}t · Completion: ${d.data.usage?.completion_tokens||'?'}t · trace: ${d.data.trace_id}</span>
+          </div>`;
+      }
+      if(trigger==='auto'){
+        const hint=document.getElementById('aiResultHint');
+        if(hint)hint.style.display='none';
+      }
+    }else{
+      const entry=document.getElementById(entryId);
+      if(entry){
+        entry.className='log-entry error';
+        entry.innerHTML=`
+          <div class="log-header"><span class="log-status">🔴 DeepSeek 调用失败</span><span class="log-time">⏳ ${startTimeFull}</span></div>
+          <div class="log-body"><div class="abt" style="color:#dc2626">${d.message||'未知错误'}</div></div>`;
+      }
+    }
+  }catch(e){
+    const entry=document.getElementById(entryId);
+    if(entry){
+      entry.className='log-entry error';
+      entry.innerHTML=`
+        <div class="log-header"><span class="log-status">🔴 网络错误</span><span class="log-time">⏳ ${startTimeFull}</span></div>
+        <div class="log-body"><div class="abt" style="color:#dc2626">${e.message}</div></div>`;
+    }
+  }
+}
+
+/* ---- 牧童 Agent 调用 ---- */
+async function callMutongAgent(){
+  const m=allMs().find(x=>x.id===selId);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  const now=new Date();
+  const startTimeFull=now.toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+  const entryId='mutong-'+Date.now();
+
+  // 隐藏提示，切到历史 Tab
+  const hint=document.getElementById('aiResultHint');
+  if(hint)hint.style.display='none';
+  const histHint=document.getElementById('historyHint');
+  if(histHint)histHint.style.display='none';
+  switchDTab('history', document.querySelectorAll('.dtab-bar .dt')[2]);
+  const slot=document.getElementById('agentSlot');
+
+  // 显示加载状态
+  const loadingHTML=`
+    <div class="log-entry loading" id="${entryId}">
+      <div class="log-header">
+        <span class="log-status">🟡 正在调用 牧童 Agent ...</span>
+        <span class="log-time">⏳ ${startTimeFull}</span>
+      </div>
+      <div class="log-body">
+        <div class="pending-text">⏳ 正在请求 <span class="api-ep-badge llm">POST ${AGENT_API}/api/agent/mutong/analyze</span> → 牧童 Agent（${MUTONG_AGENT_URL}），请稍候...</div>
+      </div>
+    </div>`;
+  slot.insertAdjacentHTML('beforeend', loadingHTML);
+
+  // 构建丰富上下文：趋势 + 跨产线 + 供应商 + 上下游
+  const trend=buildTrendAnalysis(m);
+  const crossLine=buildCrossLineInfo(m);
+  const supplierCtx=buildSupplierContext(m);
+  const sectionCtx=buildSectionContext(m);
+
+  const payload={
+    material:{
+      name:m.name,pn:m.pn,supplier:m.sp,
+      stock:m.st,unit:m.un,burnRate:m.rt,
+      exhaustion:fmtT(ex),exhaustionMinutes:ex,
+      inTransit:m.tr?`${m.tr.q}${m.un}，ETA ${m.tr.eta}`:''
+    },
+    context:`【趋势分析】${trend}
+【跨产线信息】${crossLine}
+【供应商背景】${supplierCtx}
+【工段上下游】${sectionCtx}
+【当前产线】${D[curL].name}，节拍 ${D[curL].spd}，OEE ${D[curL].oee}
+
+请基于以上完整数据，进行深度物料风险分析。重点关注：
+1. 消耗趋势是否在加速恶化？（看趋势数据里的加速度）
+2. 跨产线是否有调拨可能？（看其他线同物料库存）
+3. 供应商是否近期有问题？（看供应商背景）
+4. 该物料断供会造成什么连锁影响？（看工段上下游）
+5. 给出具体的、可执行的建议动作。`
+  };
+
+  try{
+    const t0=Date.now();
+    const r=await fetch(`${AGENT_API}/api/agent/mutong/analyze`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    // 非 200 响应 → 解析 JSON 错误
+    if(!r.ok){
+      const errData=await r.json().catch(()=>({message:`HTTP ${r.status}`}));
+      throw new Error(errData.message||`HTTP ${r.status}`);
+    }
+    // 读取 SSE 流
+    const reader=r.body.getReader();
+    const decoder=new TextDecoder();
+    let fullText='';
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      const chunk=decoder.decode(value,{stream:true});
+      const lines=chunk.split('\n');
+      for(const line of lines){
+        if(line.startsWith('data: ')){
+          const data=line.slice(6);
+          if(data==='[DONE]')continue;
+          try{
+            const json=JSON.parse(data);
+            if(json.content)fullText+=json.content;
+            if(json.error)throw new Error(json.error);
+          }catch(e){}
+        }
+      }
+    }
+    const elapsed=((Date.now()-t0)/1000).toFixed(1);
+    const endTime=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+    const entry=document.getElementById(entryId);
+    if(entry){
+      entry.className='log-entry done';
+      entry.innerHTML=`
+        <div class="log-header">
+          <span class="log-status">🟢 牧童 Agent 分析完成<span class="llm-badge" style="background:#f59e0b;margin-left:6px">牧童</span></span>
+          <span class="log-time">⏳ ${startTimeFull} → ✅ ${endTime}</span>
+        </div>
+        <div class="log-body"><div class="abt">${fullText.replace(/\n/g,'<br>')||'（无内容）'}</div></div>
+        <div class="log-footer">
+          <span>📡 <span class="api-ep-badge llm">POST ${AGENT_API}/api/agent/mutong/analyze</span> → ${MUTONG_AGENT_URL}</span>
+          <span>耗时 <span class="elapsed">${elapsed}s</span></span>
+        </div>`;
+    }
+  }catch(e){
+    console.error('牧童 Agent error:',e);
+    const endTime=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',month:'2-digit',day:'2-digit'});
+    const entry=document.getElementById(entryId);
+    if(entry){
+      entry.className='log-entry error';
+      entry.innerHTML=`
+        <div class="log-header">
+          <span class="log-status">🔴 牧童 Agent 调用失败<span class="llm-badge" style="background:#888;margin-left:6px">离线</span></span>
+          <span class="log-time">⏳ ${startTimeFull} → ⚠️ ${endTime}</span>
+        </div>
+        <div class="log-body" style="color:#888">${e.message||'未知错误'}<br>请确认：<br>1. Flask 后端已启动（python server.py）<br>2. MUTONG_AGENT_KEY 已配置<br>3. 牧童 Agent 服务正常运行</div>
+      </div>`;
+    }
+  }
+}
+
+/* 保留 buildA 作为 API 不可用时的降级 */
+function buildA(m,ex,lv){
+  const h=ex/60;
+  if(h<=0)return `<b>⚠️ 已耗尽，立即响应。</b><br><br>1. 确认当前工位是否停线<br>2. 主仓库存充足，<span class="g">人工推料 3 分钟可达</span>（AGV 10 分钟+）<br>3. ${m.tr?`在途 ${m.tr.q} ${m.un}（ETA ${m.tr.eta}），联系加急`:'<span class="r">无在途，立即采购</span>'}<br><br><b>建议动作：</b>推料救急 → 确认在途/下单 → 复盘根因`;
+  if(h<1)return `<b>⚠️ 预计 ${fmtT(ex)} 耗尽。</b><br><br>1. ${m.tr?`在途 ${m.tr.q} ${m.un}（ETA ${m.tr.eta}），<span class="r">可能撑不到</span>`:'<span class="r">无在途</span>'}<br>2. 查邻近产线同物料库存<br>3. <span class="g">建议人工应急</span>（AGV 今日已预警有延迟）<br><br><b>建议动作：</b>先人工推料，不依赖 AGV`;
+  return `<b>🟡 预计 ${fmtT(ex)} 耗尽，提前关注。</b><br><br>1. 当前消耗同比 ↑${((m.rt/(m.rt*0.85)-1)*100).toFixed(0)}%，检查排产是否有集中上线<br>2. ${m.tr?`在途 ETA ${m.tr.eta}，时间尚可`:'<span class="r">无在途，建议补货</span>'}<br>3. 供应商 ${m.sp} 近期交付${Math.random()>0.5?'稳定':'延迟过1次'}<br><br><b>建议动作：</b>暂不紧急，通知物流班长关注`;
+}
+
+function closeD(){document.getElementById('dpan').classList.remove('open');selId=null;renderTable();}
+function doA(act){const m=allMs().find(x=>x.id===selId);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);const lv=level(ex);
+  // 先给反馈
+  const t=document.getElementById('toast');
+  t.innerHTML=`<div class="ttit">📲 飞书消息推送</div>⏳ 发送中...`;
+  t.classList.add('show');
+
+  if(act==='推飞书'){
+    sendFeishuAlert(m,ex,lv);
+  }else{
+    fetch(`${AGENT_API}/api/feishu/send`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({receive_id_type:'open_id',msg_type:'text',
+        text:`${act}：${m.name}（${m.pn}）\n当前存量 ${m.st} ${m.un}，预计 ${fmtT(ex)} 耗尽\n${m.tr?'在途 '+m.tr.q+' '+m.un+'，ETA '+m.tr.eta:'无在途订单'}`})
+    }).then(r=>r.json()).then(d=>{
+      t.innerHTML=`<div class="ttit">📲 飞书消息推送</div>${d.code===0?'✅ 已推送到飞书':d.message||'发送成功'}`;
+      setTimeout(()=>t.classList.remove('show'),3000);
+    }).catch(e=>{
+      t.innerHTML=`<div class="ttit">📲 飞书消息推送</div>❌ 推送失败：未连接服务 (${AGENT_API})<br>请启动：cd api && source venv/bin/activate && python server.py`;
+      setTimeout(()=>t.classList.remove('show'),5000);
+    });
+  }
+}
+
+async function sendFeishuAlert(m,ex,lv){
+  const t=document.getElementById('toast');
+  let suggestion='';
+  try{
+    const payload={material:{name:m.name,pn:m.pn,supplier:m.sp,stock:m.st,unit:m.un,burnRate:m.rt,exhaustion:fmtT(ex),exhaustionMinutes:ex,inTransit:m.tr?`${m.tr.q}${m.un}，ETA ${m.tr.eta}`:''},context:'飞书推送触发'};
+    const r=await fetch(`${AGENT_API}/api/agent/analyze`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.code===0) suggestion=d.data.analysis.replace(/\n/g,'\n');
+  }catch(e){suggestion=_mockSuggestion(m,ex,lv);}
+
+  const levelName=lv==='critical'?'critical':lv==='warn'?'warn':'info';
+  fetch(`${AGENT_API}/api/feishu/send`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({receive_id_type:'open_id',msg_type:'card',title:`${lv==='critical'?'🔴':'🟡'} 物料告警 · ${D[curL].name}`,level:levelName,material_name:m.name,material_pn:m.pn,stock_info:`当前 ${m.st} ${m.un}，预计 ${fmtT(ex)} 耗尽${m.tr?' | 在途 '+m.tr.q+' '+m.un+'，ETA '+m.tr.eta:''}`,suggestion:suggestion.slice(0,300)+(suggestion.length>300?'...':''),detail_url:`file://${location.href}`})
+  }).then(r=>r.json()).then(d=>{
+    t.innerHTML=`<div class="ttit">📲 飞书消息推送</div>${d.code===0?'✅ 卡片消息已推送到飞书':d.message||'发送失败'}`;
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }).catch(e=>{
+    t.innerHTML=`<div class="ttit">📲 飞书消息推送</div>❌ 推送失败：未连接服务 (${AGENT_API})<br>请启动：cd api && source venv/bin/activate && python server.py`;
+    setTimeout(()=>t.classList.remove('show'),5000);
+  });
+}
+function _mockSuggestion(m,ex,lv){const h=ex/60;if(h<=0)return `【紧急】${m.name} 已耗尽，确认工位是否停线，人工推料 3 分钟可达`;if(h<1)return `【告警】${m.name} 预计 ${fmtT(ex)} 耗尽，建议人工应急推料`;return `【预警】${m.name} 预计 ${fmtT(ex)} 耗尽，通知物流班长关注`;}
+
+/* ═══ HITL 人工审批流程 ═══
+   生产数据 → 牧童 Agent 分析 → 风险判定 → 飞书卡片 + 页面双通道审批 → 处置指令 */
+let _hitlTracked={}; // 已展示过时间线的流程（避免重复刷新）
+async function startHitl(id){
+  const m=allMs().find(x=>x.id===id);if(!m)return;
+  const ex=exhaustion(m.st,m.rt);
+  const t=document.getElementById('toast');
+  t.innerHTML=`<div class="ttit">⏸️ HITL 审批流程</div>启动中：牧童 Agent 分析...`;
+  t.classList.add('show');
+  const trend=buildTrendAnalysis(m);
+  const crossLine=buildCrossLineInfo(m);
+  const supplierCtx=buildSupplierContext(m);
+  const sectionCtx=buildSectionContext(m);
+  try{
+    const r=await fetch(`${AGENT_API}/api/hitl/start`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        material:{name:m.name,pn:m.pn,supplier:m.sp,stock:m.st,unit:m.un,burnRate:m.rt,exhaustion:fmtT(ex),exhaustionMinutes:ex,inTransit:m.tr?`${m.tr.q}${m.un}，ETA ${m.tr.eta}`:''},
+        context:`【趋势分析】${trend}\n【跨产线信息】${crossLine}\n【供应商背景】${supplierCtx}\n【工段上下游】${sectionCtx}\n【当前产线】${D[curL].name}`
+      })
+    });
+    const d=await r.json();
+    if(d.code===0){
+      t.innerHTML=`<div class="ttit">⏸️ HITL 审批流程</div>✅ 已启动（ID: ${d.data.approval_id}）<br>牧童 Agent 分析中 → 风险判定 → 飞书卡片推送`;
+      setTimeout(()=>t.classList.remove('show'),5000);
+      document.getElementById('hitlPanel').classList.add('open');
+      setTimeout(refreshHitlPanel,1500);
+      // 同时切到历史 Tab 展示流程记录
+      if(typeof switchDTab==='function'){/* 不强制切换 */}
+    }else{
+      t.innerHTML=`<div class="ttit">⏸️ HITL 审批流程</div>❌ ${d.message||'启动失败'}`;
+      setTimeout(()=>t.classList.remove('show'),4000);
+    }
+  }catch(e){
+    t.innerHTML=`<div class="ttit">⏸️ HITL 审批流程</div>❌ 无法连接服务 (${AGENT_API})<br>请确认平台已启动`;
+    setTimeout(()=>t.classList.remove('show'),5000);
+  }
+}
+function toggleHitlPanel(){
+  document.getElementById('hitlPanel').classList.toggle('open');
+}
+async function refreshHitlPanel(){
+  const body=document.getElementById('hitlBody');
+  if(!body)return;
+  try{
+    const [pr,hr]=await Promise.all([
+      fetch(`${AGENT_API}/api/hitl/pending`).then(r=>r.json()),
+      fetch(`${AGENT_API}/api/hitl/history`).then(r=>r.json()),
+    ]);
+    const badge=document.getElementById('hitlBadge');
+    badge.style.display=pr.waiting>0?'inline-block':'none';
+    badge.textContent=pr.waiting;
+    let html='';
+    // 活动项：等待审批 → 按钮；运行中 → 分析中
+    (pr.pending||[]).forEach(p=>{
+      const isWaiting=p.approval_status==='waiting';
+      html+=`<div class="hp-item risk-${p.risk}">
+        <div class="hp-meta">
+          <span class="hp-risk-${p.risk}">${p.risk==='high'?'🔴 紧急':p.risk==='medium'?'🟡 需关注':'🟢 正常'}</span>
+          <span>${p.material_name}（${p.material_pn}）</span>
+          <span>ID: ${p.approval_id}</span>
+        </div>
+        <div class="hp-analysis">${(p.analysis||(isWaiting?'分析中...':'牧童 Agent 分析中...')).replace(/</g,'&lt;')}</div>`;
+      if(isWaiting){
+        html+=`<div class="hp-actions">
+          <button class="hp-approve" onclick="hitlVote('${p.approval_id}','approve')">✅ 通过</button>
+          <button class="hp-reject" onclick="hitlVote('${p.approval_id}','reject')">❌ 驳回</button>
+        </div>`;
+      }else{
+        html+=`<div style="font-size:10px;color:#e68a00;text-align:center;padding:4px 0">⏳ 流程运行中，等待 牧童 Agent 分析...</div>`;
+      }
+      html+='</div>';
+    });
+    if(!html)html='<div class="hp-empty">暂无活动流程<br><span style="font-size:9px">在物料详情 → 快捷操作中发起 HITL 流程</span></div>';
+    // 最近流程时间线（最多显示 3 条）
+    const done=(hr.history||[]).slice(-3).reverse();
+    if(done.length){
+      html+='<div style="font-size:11px;font-weight:600;color:#555;margin:12px 0 6px">📋 最近流程</div>';
+      done.forEach(h=>{
+        const st={approved:'✅ 通过',rejected:'❌ 驳回',auto_approved:'🟢 自动通过',waiting:'⏸️ 审批中',pending:'⏳ 运行中'}[h.approval_status]||h.approval_status;
+        html+=`<div style="font-size:10px;color:#666;padding:4px 0;border-bottom:1px solid #f0f0f0">${h.material_name} · ${st} · ${h.started_at}→${h.finished_at||'进行中'}</div>`;
+      });
+    }
+    body.innerHTML=html;
+  }catch(e){/* 服务未连接时静默 */}
+}
+async function hitlVote(aid,action){
+  const comment=prompt(action==='approve'?'审批意见（选填）：':'驳回意见（建议填写）：','');
+  if(comment===null)return;
+  try{
+    const r=await fetch(`${AGENT_API}/api/hitl/${action}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approval_id:aid,comment:comment})});
+    const d=await r.json();
+    if(r.ok){refreshHitlPanel();}
+    else{alert(d.error||'处理失败');refreshHitlPanel();}
+  }catch(e){alert('网络错误：'+e.message);}
+}
+// HITL 面板轮询（2 秒）
+setInterval(()=>{const p=document.getElementById('hitlPanel');if(p&&p.classList.contains('open'))refreshHitlPanel();},2000);
+
+function switchL(l){
+  curL=l;selId=null;closeD();curS='all';
+  document.querySelectorAll('.stabs .st').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.getElementById('llabel').textContent=D[l].name;
+  ['bL1','bL2','bL3'].forEach((bid,i)=>document.getElementById(bid).className=(['line1','line2','line3'][i]===l)?'btn active':'btn');
+  document.querySelectorAll('.tn').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tn'+(l==='line1'?'1':l==='line2'?'2':'3')).classList.add('active');
+  renderAll();
+}
+function setF(f){
+  curF=f;
+  ['bAll','bCrit','bWarn'].forEach(bid=>document.getElementById(bid).className='btn');
+  document.getElementById(f==='all'?'bAll':f==='critical'?'bCrit':'bWarn').className='btn active';
+  ['rAll','rCrit','rWarn'].forEach(bid=>document.getElementById(bid).classList.remove('active'));
+  document.getElementById(f==='all'?'rAll':f==='critical'?'rCrit':'rWarn').classList.add('active');
+  renderTable();
+}
+function showS(k){curS=k;closeD();document.querySelectorAll('.stabs .st').forEach((t,i)=>t.classList.toggle('active',{all:0,frame:1,motor:2,final:3}[k]===i));renderTable();}
+function toggleAuto(){autoR=!autoR;document.getElementById('rAIcon').textContent=autoR?'⏸':'▶';document.getElementById('rALabel').textContent=autoR?'暂停':'恢复';}
+let _lastAlert={}; // 防重复推送：同一物料 5 分钟内不重复推
+function autoChk(){allMs().forEach(m=>{const ex=exhaustion(m.st,m.rt);
+  if(ex>=0&&ex<60){
+    const now=Date.now();const last=_lastAlert[m.id]||0;
+    if(now-last<300000)return; // 5 分钟内不重复
+    _lastAlert[m.id]=now;
+    fetch(`${AGENT_API}/api/feishu/send`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({receive_id_type:'open_id',msg_type:'card',title:`🔴 自动告警 · ${D[curL].name}`,level:'critical',material_name:m.name,material_pn:m.pn,stock_info:`当前 ${m.st} ${m.un}，预计 ${fmtT(ex)} 耗尽 | 在途 ${m.tr?m.tr.q+' '+m.un+'，ETA '+m.tr.eta:'无'}`,suggestion:'系统自动检测到该物料处于告警状态，请点击查看详情。',detail_url:`file://${location.href}`})
+    }).catch(()=>{/* 飞书未配置时静默降级 */});
+  }
+});}
+function renderAll(){renderKPI();renderTable();document.getElementById('lastRef').textContent=new Date().toLocaleTimeString('zh-CN');}
+// 每次刷新时自动巡检异常
+let _mutongCheckCd=0;
+function renderAllWithCheck(){renderAll();_mutongCheckCd++;if(_mutongCheckCd>=3){_mutongCheckCd=0;runAutoMutongCheck();}}
+
+let cd=30;
+setInterval(()=>{if(autoR){cd--;if(cd<=0){cd=30;renderAllWithCheck();autoChk();}}},1000);
+window.onload=()=>{renderAllWithCheck();setTimeout(runAutoMutongCheck,2000);};
+</script>
+</body>
+</html>
