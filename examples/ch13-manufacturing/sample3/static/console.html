@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>牧童电动车 · 智能制造控制台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC",sans-serif;background:#f8f9fa;color:#24292e;overflow:hidden}
+
+.app{display:grid;grid-template-rows:52px 1fr;grid-template-columns:200px 1fr;height:100vh}
+
+/* ══ Header ══ */
+.hd{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 16px;background:#fff;border-bottom:1px solid #e1e4e8}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:26px;height:26px;border-radius:6px;background:#ea580c;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:"SF Mono",Menlo,monospace}
+.logo h1{font-size:14px;font-weight:600}
+.logo small{font-size:10px;color:#6a737d;font-weight:400;display:block;margin-top:1px}
+.hd-mid{flex:1;display:flex;justify-content:center;gap:20px}
+.hd-mid a{font-size:12px;color:#6a737d;text-decoration:none;padding:4px 10px;border-radius:6px;cursor:pointer}
+.hd-mid a.on{color:#ea580c;background:#fff7ed;font-weight:600}
+.hd-mid a:hover{background:#f6f8fa}
+.hd-right{display:flex;align-items:center;gap:12px;font-size:11px;color:#6a737d}
+.live{display:flex;align-items:center;gap:5px;font-family:"SF Mono",Menlo,monospace}
+.live i{width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.user{width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.logout{font-size:11px;color:#6a737d;cursor:pointer;padding:4px 8px;border-radius:5px}
+.logout:hover{background:#fee2e2;color:#b91c1c}
+
+/* ══ Sidebar ══ */
+.sd{background:#fff;border-right:1px solid #e1e4e8;padding:12px 8px;overflow-y:auto}
+.sd-group{margin-bottom:14px}
+.sd-title{font-size:10px;font-weight:600;color:#8b949e;letter-spacing:.5px;padding:0 10px;margin-bottom:5px}
+.sd-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;font-size:12px;color:#24292e;cursor:pointer;margin-bottom:2px}
+.sd-item:hover{background:#f6f8fa}
+.sd-item.on{background:#fff7ed;color:#c2410c;font-weight:600}
+.sd-item svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;flex-shrink:0}
+.sd-item .n{margin-left:auto;font-size:10px;color:#8b949e;font-family:"SF Mono",Menlo,monospace}
+.sd-item.on .n{color:#c2410c}
+.sd-item.link{color:#2563eb}
+.sd-item.link.on{color:#2563eb;background:#eff6ff}
+
+/* ══ Main ══ */
+.mn{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto 1fr auto;gap:12px;padding:14px;overflow:hidden}
+
+/* KPI 行 */
+.kpis{grid-column:1/3;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kpi{background:#fff;border:1px solid #e1e4e8;border-radius:9px;padding:10px 12px}
+.kpi .l{font-size:10px;color:#6a737d;display:flex;justify-content:space-between;align-items:center}
+.kpi .v{font-size:21px;font-weight:700;margin-top:3px;font-family:"SF Mono",Menlo,monospace;letter-spacing:-.5px}
+.kpi .t{font-size:10px;margin-top:2px}
+.up{color:#16a34a}.dn{color:#dc2626}.wt{color:#d97706}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.g{background:#16a34a}.dot.o{background:#ea580c}.dot.y{background:#d97706}.dot.b{background:#2563eb}.dot.r{background:#dc2626}.dot.p{background:#7c3aed}
+
+/* 车间图区 */
+.shop{background:#fff;border:1px solid #e1e4e8;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.shop-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #f1f3f5}
+.shop-hd b{font-size:12px}
+.shop-hd .ctl{display:flex;gap:6px}
+.btn{font-size:10px;padding:3px 9px;border-radius:5px;border:1px solid #e1e4e8;background:#fff;color:#24292e;cursor:pointer}
+.btn.on{background:#ea580c;color:#fff;border-color:#ea580c}
+.shop-svg{flex:1;min-height:0}
+.shop-svg svg{width:100%;height:100%}
+
+/* 右侧 BI */
+.side{display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0}
+.panel{background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:11px 13px;flex-shrink:0}
+.panel h3{font-size:11px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.panel h3 small{font-size:9px;color:#8b949e;font-weight:400}
+
+/* 设备列表 */
+.eq{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px;border-bottom:1px solid #f6f8fa}
+.eq:last-child{border:none}
+.eq .nm{flex:1}
+.eq .st{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:600}
+.st.run{background:#dcfce7;color:#15803d}.st.idle{background:#fef3c7;color:#b45309}.st.warn{background:#fee2e2;color:#b91c1c}
+
+/* 迷你条形图 */
+.bar-row{display:flex;align-items:center;gap:8px;font-size:10px;margin-bottom:6px}
+.bar-row .bl{width:44px;color:#6a737d;flex-shrink:0}
+.bar-row .bt{flex:1;height:7px;background:#f1f3f5;border-radius:4px;overflow:hidden}
+.bar-row .bt i{display:block;height:100%;border-radius:4px}
+.bar-row .bv{width:36px;text-align:right;font-family:"SF Mono",Menlo,monospace;color:#24292e}
+
+/* 告警 */
+.alarm{display:flex;gap:8px;padding:6px 0;font-size:10px;border-bottom:1px solid #f6f8fa;line-height:1.4}
+.alarm:last-child{border:none}
+.alarm .tm{color:#8b949e;font-family:"SF Mono",Menlo,monospace;flex-shrink:0;font-size:9px}
+.alarm .tx{flex:1;color:#24292e}
+.alarm.lv-h .tx{color:#b91c1c}.alarm.lv-m .tx{color:#b45309}
+
+/* Agent 对话 */
+.agt{display:flex;gap:7px;padding:6px 0;font-size:10px;line-height:1.5;border-bottom:1px solid #f6f8fa}
+.agt:last-child{border:none}
+.agt .who{flex-shrink:0;width:32px;font-weight:600}
+.agt .who.ai{color:#ea580c}.agt .who.hu{color:#2563eb}
+.agt .ms{flex:1;color:#24292e}
+
+/* 底部图例/状态条 */
+.ft{grid-column:1/3;display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #e1e4e8;border-radius:9px;padding:7px 14px;font-size:10px;color:#6a737d}
+.ft .lg{display:flex;align-items:center;gap:5px}
+.ft .lg i{width:8px;height:8px;border-radius:2px}
+.ft .mono{margin-left:auto;font-family:"SF Mono",Menlo,monospace}
+
+/* ══ 视图切换 ══ */
+.view{grid-column:1/3;grid-row:2;display:none;min-height:0;overflow-y:auto}
+.view.on{display:block}
+.ov{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto 1fr;gap:12px;height:100%}
+.ov .kpis{grid-column:1/3}
+.vhd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+.vhd h2{font-size:15px;font-weight:600}
+.vhd .sub{font-size:11px;color:#6a737d;margin-top:2px}
+.vhd .act{display:flex;gap:6px}
+.card{background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:14px;margin-bottom:12px}
+.card h3{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.card h3 small{font-size:9px;color:#8b949e;font-weight:400}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{text-align:left;color:#6a737d;font-weight:500;padding:7px 10px;border-bottom:1px solid #e1e4e8;background:#f6f8fa;white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid #f1f3f5;color:#24292e}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafbfc}
+.tbl .mono{font-family:"SF Mono",Menlo,monospace;font-size:10px}
+.g2{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mcard{background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:13px}
+.mcard .t{font-size:11px;color:#6a737d;display:flex;align-items:center;gap:6px}
+.mcard .v{font-size:19px;font-weight:700;margin-top:5px;font-family:"SF Mono",Menlo,monospace}
+.mcard .d{font-size:10px;color:#6a737d;margin-top:3px;line-height:1.5}
+.tag{display:inline-block;font-size:9px;padding:1px 7px;border-radius:8px;font-weight:600}
+.tag.g{background:#dcfce7;color:#15803d}.tag.y{background:#fef3c7;color:#b45309}.tag.r{background:#fee2e2;color:#b91c1c}.tag.b{background:#dbeafe;color:#1d4ed8}.tag.p{background:#f3e8ff;color:#7c3aed}
+/* 客服对话 */
+.chat{background:#fff;border:1px solid #e1e4e8;border-radius:10px;padding:14px;display:flex;flex-direction:column}
+.chat .msgs{display:flex;flex-direction:column;gap:9px;min-height:260px}
+.msg{max-width:72%;padding:8px 11px;border-radius:10px;font-size:11px;line-height:1.55}
+.msg.a{background:#f6f8fa;border:1px solid #e1e4e8;align-self:flex-start;border-top-left-radius:3px}
+.msg.u{background:#fff7ed;border:1px solid #fdba74;align-self:flex-end;border-top-right-radius:3px}
+.chat .inp{display:flex;gap:8px;margin-top:10px}
+.chat .inp input{flex:1;border:1px solid #e1e4e8;border-radius:7px;padding:7px 10px;font-size:11px;outline:none;background:#f8f9fa}
+.chat .inp input:focus{border-color:#ea580c;background:#fff}
+.chat .inp button{background:#ea580c;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer}
+/* 设置表单 */
+.frm{display:grid;grid-template-columns:140px 1fr;gap:10px 12px;align-items:center;font-size:11px}
+.frm label{color:#6a737d}
+.frm input,.frm select{border:1px solid #e1e4e8;border-radius:6px;padding:6px 9px;font-size:11px;outline:none;background:#fff}
+.frm input:focus,.frm select:focus{border-color:#ea580c}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ Header ══ -->
+  <header class="hd">
+    <div class="logo">
+      <div class="logo-mark">MT</div>
+      <div>
+        <h1>牧童电动车 · 智能制造控制台</h1>
+        <small>牧童 Agent 指挥中心</small>
+      </div>
+    </div>
+    <nav class="hd-mid">
+      <a class="on" data-v="overview" onclick="sw('overview')">生产驾驶舱</a><a onclick="location.href='/pages/index.html'" title="进入物料监控看板">物料监控</a><a data-v="quality" onclick="sw('quality')">质量检测</a><a data-v="energy" onclick="sw('energy')">能源管理</a><a data-v="service" onclick="sw('service')">智能客服</a>
+    </nav>
+    <div class="hd-right">
+      <span class="live"><i></i>LIVE</span>
+      <span id="clock" style="font-family:'SF Mono',Menlo,monospace">08:00:00</span>
+      <div class="user">牧</div>
+      <span class="logout" onclick="logout()">退出</span>
+    </div>
+  </header>
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="sd">
+    <div class="sd-group">
+      <div class="sd-title">生产监控</div>
+      <div class="sd-item on" data-v="overview" onclick="sw('overview')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>车间总览</div>
+      <div class="sd-item" data-v="line" onclick="sw('line')"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>产线实时状态 <span class="n">4</span></div>
+      <div class="sd-item" data-v="device" onclick="sw('device')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>设备运行监控 <span class="n">12</span></div>
+      <div class="sd-item link" onclick="location.href='/pages/index.html'" title="进入物料监控看板"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>物料监控 <span class="n">→</span></div>
+    </div>
+    <div class="sd-group">
+      <div class="sd-title">Agent 中心</div>
+      <div class="sd-item" data-v="ops" onclick="sw('ops')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>运维 Agent <span class="n">3</span></div>
+      <div class="sd-item" data-v="service" onclick="sw('service')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>智能客服 <span class="n">在线</span></div>
+      <div class="sd-item" data-v="kb" onclick="sw('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>知识库问答</div>
+    </div>
+    <div class="sd-group">
+      <div class="sd-title">分析与优化</div>
+      <div class="sd-item" data-v="supply" onclick="sw('supply')"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/><circle cx="12" cy="12" r="5"/></svg>供应链优化</div>
+      <div class="sd-item" data-v="quality" onclick="sw('quality')"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>质量检测 <span class="n">AI</span></div>
+      <div class="sd-item" data-v="energy" onclick="sw('energy')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>能源看板</div>
+    </div>
+    <div class="sd-group">
+      <div class="sd-title">系统</div>
+      <div class="sd-item" data-v="setting" onclick="sw('setting')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L14 3h-4l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L10 21h4l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>系统设置</div>
+      <div class="sd-item" data-v="log" onclick="sw('log')"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>操作日志</div>
+    </div>
+  </aside>
+
+  <!-- ══ Main ══ -->
+  <main class="mn">
+
+    <!-- ══ 视图：车间总览 ══ -->
+    <div class="view on" id="v-overview">
+      <div class="ov">
+
+    <!-- KPI 行 -->
+    <div class="kpis">
+      <div class="kpi"><div class="l">今日产量 <span class="dot g"></span></div><div class="v">2,847</div><div class="t up">▲ 6.2% vs 昨日</div></div>
+      <div class="kpi"><div class="l">设备综合效率 OEE <span class="dot b"></span></div><div class="v">87.3%</div><div class="t up">▲ 1.1%</div></div>
+      <div class="kpi"><div class="l">一次合格率 <span class="dot g"></span></div><div class="v">98.6%</div><div class="t up">▲ 0.3%</div></div>
+      <div class="kpi"><div class="l">活跃告警 <span class="dot r"></span></div><div class="v">2</div><div class="t dn">▲ 1 新增</div></div>
+      <div class="kpi"><div class="l">订单准时率 <span class="dot y"></span></div><div class="v">94.1%</div><div class="t dn">▼ 0.8%</div></div>
+      <div class="kpi"><div class="l">能耗 kWh <span class="dot p"></span></div><div class="v">1,206</div><div class="t up">▼ 4.5% 优化</div></div>
+    </div>
+
+    <!-- 车间图 -->
+    <section class="shop">
+      <div class="shop-hd">
+        <b>生产车间 · 总装一线至四线</b>
+        <div class="ctl">
+          <button class="btn on">实时</button><button class="btn">热力图</button><button class="btn">历史回放</button>
+        </div>
+      </div>
+      <div class="shop-svg">
+        <svg viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M30 0H0v30" fill="none" stroke="#eef1f4" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="900" height="460" fill="#fbfcfd"/>
+          <rect width="900" height="460" fill="url(#grid)"/>
+
+          <!-- 车间外墙 -->
+          <rect x="30" y="20" width="840" height="410" fill="none" stroke="#c8ced4" stroke-width="2" rx="4"/>
+          <text x="42" y="40" font-size="11" fill="#8b949e" font-family="SF Mono,Menlo,monospace">PLANT-01 · 电动车整车装配车间 · 6,800 m²</text>
+
+          <!-- ══ 四条产线 ══ -->
+          <!-- Line 1 -->
+          <g>
+            <rect x="60" y="60" width="560" height="70" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+            <text x="72" y="80" font-size="11" font-weight="600" fill="#c2410c">总装一线</text>
+            <text x="72" y="118" font-size="9" fill="#8b949e">节拍 42s · 产量 812 台 · 运行中</text>
+            <!-- 工位 -->
+            <g font-size="8" fill="#6a737d" text-anchor="middle">
+              <rect x="180" y="75" width="52" height="40" rx="3" fill="#fff" stroke="#fb923c"/><text x="206" y="93">焊接</text><text x="206" y="105" fill="#16a34a">● RUN</text>
+              <rect x="244" y="75" width="52" height="40" rx="3" fill="#fff" stroke="#fb923c"/><text x="270" y="93">涂装</text><text x="270" y="105" fill="#16a34a">● RUN</text>
+              <rect x="308" y="75" width="52" height="40" rx="3" fill="#fff" stroke="#fb923c"/><text x="334" y="93">组装</text><text x="334" y="105" fill="#16a34a">● RUN</text>
+              <rect x="372" y="75" width="52" height="40" rx="3" fill="#fef3c7" stroke="#f59e0b"/><text x="398" y="93">电池</text><text x="398" y="105" fill="#d97706">● BUSY</text>
+              <rect x="436" y="75" width="52" height="40" rx="3" fill="#fff" stroke="#fb923c"/><text x="462" y="93">调试</text><text x="462" y="105" fill="#16a34a">● RUN</text>
+              <rect x="500" y="75" width="52" height="40" rx="3" fill="#fff" stroke="#fb923c"/><text x="526" y="93">终检</text><text x="526" y="105" fill="#16a34a">● RUN</text>
+            </g>
+            <!-- 传送带 -->
+            <line x1="176" y1="95" x2="560" y2="95" stroke="#fb923c" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>
+            <!-- 移动工件 -->
+            <rect x="290" y="90" width="10" height="10" rx="2" fill="#ea580c"><animate attributeName="x" values="180;550" dur="6s" repeatCount="indefinite"/></rect>
+            <rect x="200" y="90" width="10" height="10" rx="2" fill="#fdba74"><animate attributeName="x" values="180;550" dur="6s" begin="2s" repeatCount="indefinite"/></rect>
+          </g>
+
+          <!-- Line 2 -->
+          <g>
+            <rect x="60" y="145" width="560" height="70" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+            <text x="72" y="165" font-size="11" font-weight="600" fill="#1d4ed8">总装二线</text>
+            <text x="72" y="203" font-size="9" fill="#8b949e">节拍 45s · 产量 768 台 · 运行中</text>
+            <g font-size="8" fill="#6a737d" text-anchor="middle">
+              <rect x="180" y="160" width="52" height="40" rx="3" fill="#fff" stroke="#60a5fa"/><text x="206" y="178">焊接</text><text x="206" y="190" fill="#16a34a">● RUN</text>
+              <rect x="244" y="160" width="52" height="40" rx="3" fill="#fee2e2" stroke="#ef4444"/><text x="270" y="178">涂装</text><text x="270" y="190" fill="#b91c1c">● WARN</text>
+              <rect x="308" y="160" width="52" height="40" rx="3" fill="#fff" stroke="#60a5fa"/><text x="334" y="178">组装</text><text x="334" y="190" fill="#16a34a">● RUN</text>
+              <rect x="372" y="160" width="52" height="40" rx="3" fill="#fff" stroke="#60a5fa"/><text x="398" y="178">电池</text><text x="398" y="190" fill="#16a34a">● RUN</text>
+              <rect x="436" y="160" width="52" height="40" rx="3" fill="#fff" stroke="#60a5fa"/><text x="462" y="178">调试</text><text x="462" y="190" fill="#16a34a">● RUN</text>
+              <rect x="500" y="160" width="52" height="40" rx="3" fill="#fff" stroke="#60a5fa"/><text x="526" y="178">终检</text><text x="526" y="190" fill="#16a34a">● RUN</text>
+            </g>
+            <line x1="176" y1="180" x2="560" y2="180" stroke="#60a5fa" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>
+            <rect x="300" y="175" width="10" height="10" rx="2" fill="#2563eb"><animate attributeName="x" values="180;550" dur="7s" repeatCount="indefinite"/></rect>
+          </g>
+
+          <!-- Line 3 -->
+          <g>
+            <rect x="60" y="230" width="560" height="70" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+            <text x="72" y="250" font-size="11" font-weight="600" fill="#047857">总装三线</text>
+            <text x="72" y="288" font-size="9" fill="#8b949e">节拍 40s · 产量 845 台 · 运行中（最快）</text>
+            <g font-size="8" fill="#6a737d" text-anchor="middle">
+              <rect x="180" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="206" y="263">焊接</text><text x="206" y="275" fill="#16a34a">● RUN</text>
+              <rect x="244" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="270" y="263">涂装</text><text x="270" y="275" fill="#16a34a">● RUN</text>
+              <rect x="308" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="334" y="263">组装</text><text x="334" y="275" fill="#16a34a">● RUN</text>
+              <rect x="372" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="398" y="263">电池</text><text x="398" y="275" fill="#16a34a">● RUN</text>
+              <rect x="436" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="462" y="263">调试</text><text x="462" y="275" fill="#16a34a">● RUN</text>
+              <rect x="500" y="245" width="52" height="40" rx="3" fill="#fff" stroke="#34d399"/><text x="526" y="263">终检</text><text x="526" y="275" fill="#16a34a">● RUN</text>
+            </g>
+            <line x1="176" y1="265" x2="560" y2="265" stroke="#34d399" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>
+            <rect x="250" y="260" width="10" height="10" rx="2" fill="#059669"><animate attributeName="x" values="180;550" dur="5.5s" repeatCount="indefinite"/></rect>
+          </g>
+
+          <!-- Line 4 -->
+          <g>
+            <rect x="60" y="315" width="560" height="70" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+            <text x="72" y="335" font-size="11" font-weight="600" fill="#6d28d9">总装四线</text>
+            <text x="72" y="373" font-size="9" fill="#8b949e">节拍 — · 换型中 · 预计 10:30 恢复</text>
+            <g font-size="8" fill="#6a737d" text-anchor="middle">
+              <rect x="180" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="206" y="348">焊接</text><text x="206" y="360" fill="#8b949e">○ IDLE</text>
+              <rect x="244" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="270" y="348">涂装</text><text x="270" y="360" fill="#8b949e">○ IDLE</text>
+              <rect x="308" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="334" y="348">组装</text><text x="334" y="360" fill="#8b949e">○ IDLE</text>
+              <rect x="372" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="398" y="348">电池</text><text x="398" y="360" fill="#8b949e">○ IDLE</text>
+              <rect x="436" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="462" y="348">调试</text><text x="462" y="360" fill="#8b949e">○ IDLE</text>
+              <rect x="500" y="330" width="52" height="40" rx="3" fill="#f6f8fa" stroke="#d1d5db"/><text x="526" y="348">终检</text><text x="526" y="360" fill="#8b949e">○ IDLE</text>
+            </g>
+          </g>
+
+          <!-- ══ 右侧功能区 ══ -->
+          <g font-size="9" text-anchor="middle">
+            <rect x="650" y="60" width="195" height="95" rx="6" fill="#fefce8" stroke="#fde047" stroke-width="1.5"/>
+            <text x="747" y="82" font-weight="600" fill="#a16207">仓储区</text>
+            <g fill="#6a737d">
+              <rect x="662" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="690" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="718" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="746" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="774" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="802" y="92" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/>
+              <rect x="662" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="690" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="718" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="746" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="774" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/><rect x="802" y="114" width="24" height="18" rx="2" fill="#fff" stroke="#facc15"/>
+            </g>
+            <text x="747" y="148" fill="#a16207" font-family="SF Mono,Menlo,monospace">库位 68% · AGV ×3</text>
+
+            <rect x="650" y="170" width="195" height="95" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1.5"/>
+            <text x="747" y="192" font-weight="600" fill="#be123c">质量检测站</text>
+            <text x="747" y="214" fill="#6a737d">AI视觉质检 · 抽检率 15%</text>
+            <text x="747" y="232" fill="#16a34a" font-family="SF Mono,Menlo,monospace">今日合格率 98.6%</text>
+            <text x="747" y="250" fill="#b91c1c" font-family="SF Mono,Menlo,monospace">待复检 3 台</text>
+
+            <rect x="650" y="280" width="195" height="95" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+            <text x="747" y="302" font-weight="600" fill="#15803d">AGV 调度区</text>
+            <g>
+              <rect x="670" y="315" width="16" height="12" rx="2" fill="#22c55e"><animate attributeName="x" values="670;820" dur="8s" repeatCount="indefinite"/></rect>
+              <rect x="820" y="340" width="16" height="12" rx="2" fill="#4ade80"><animate attributeName="x" values="820;670" dur="10s" repeatCount="indefinite"/></rect>
+              <rect x="745" y="362" width="16" height="12" rx="2" fill="#86efac"><animate attributeName="x" values="745;820;745" dur="9s" repeatCount="indefinite"/></rect>
+            </g>
+            <text x="747" y="368" fill="#6a737d">在途任务 7 · 队列 2</text>
+          </g>
+
+          <!-- Agent 标注 -->
+          <g>
+            <circle cx="270" cy="168" r="11" fill="#ea580c"/>
+            <text x="270" y="172" font-size="9" fill="#fff" text-anchor="middle" font-weight="700">A1</text>
+            <text x="288" y="156" font-size="8" fill="#c2410c" font-weight="600">涂装房温度异常 38.2°C</text>
+            <text x="288" y="166" font-size="8" fill="#c2410c">Agent 已派单 · 巡检中</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ══ 右侧 BI ══ -->
+    <aside class="side">
+
+      <div class="panel">
+        <h3>设备状态 <small>12 台 · 实时</small></h3>
+        <div class="eq"><span class="dot g"></span><span class="nm">焊接机器人 W-01</span><span class="st run">运行</span></div>
+        <div class="eq"><span class="dot g"></span><span class="nm">焊接机器人 W-02</span><span class="st run">运行</span></div>
+        <div class="eq"><span class="dot y"></span><span class="nm">涂装线 P-01</span><span class="st warn">告警</span></div>
+        <div class="eq"><span class="dot g"></span><span class="nm">电池装配 B-01</span><span class="st run">运行</span></div>
+        <div class="eq"><span class="dot o"></span><span class="nm">AGV-03</span><span class="st idle">充电中</span></div>
+        <div class="eq"><span class="dot g"></span><span class="nm">终检台 QC-01</span><span class="st run">运行</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>各线产量 <small>台 · 今日</small></h3>
+        <div class="bar-row"><span class="bl">一线</span><div class="bt"><i style="width:96%;background:#ea580c"></i></div><span class="bv">812</span></div>
+        <div class="bar-row"><span class="bl">二线</span><div class="bt"><i style="width:90%;background:#2563eb"></i></div><span class="bv">768</span></div>
+        <div class="bar-row"><span class="bl">三线</span><div class="bt"><i style="width:100%;background:#059669"></i></div><span class="bv">845</span></div>
+        <div class="bar-row"><span class="bl">四线</span><div class="bt"><i style="width:49%;background:#7c3aed"></i></div><span class="bv">422</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>OEE 周趋势 <small>% · 近7天</small></h3>
+        <svg viewBox="0 0 270 70" width="100%" height="70">
+          <polyline points="10,52 50,44 90,48 130,32 170,36 210,22 250,18" fill="none" stroke="#2563eb" stroke-width="2"/>
+          <g fill="#2563eb">
+            <circle cx="10" cy="52" r="2.5"/><circle cx="50" cy="44" r="2.5"/><circle cx="90" cy="48" r="2.5"/><circle cx="130" cy="32" r="2.5"/><circle cx="170" cy="36" r="2.5"/><circle cx="210" cy="22" r="2.5"/><circle cx="250" cy="18" r="2.5"/>
+          </g>
+          <text x="250" y="12" font-size="9" fill="#2563eb" text-anchor="end" font-family="SF Mono,Menlo,monospace">87.3%</text>
+        </svg>
+      </div>
+
+      <div class="panel">
+        <h3>实时告警 <small>2 条</small></h3>
+        <div class="alarm lv-h"><span class="tm">10:24</span><span class="tx">涂装线 P-01 温度超限，已通知运维 Agent 处置</span></div>
+        <div class="alarm lv-m"><span class="tm">09:47</span><span class="tx">四线换型延迟 12 min，物料配送已加急</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>Agent 处置记录 <small>近 1 小时</small></h3>
+        <div class="agt"><span class="who ai">Agent</span><span class="ms">检测到涂装房温度 38.2°C（阈值 35°），已自动派单并调低风量</span></div>
+        <div class="agt"><span class="who hu">班长</span><span class="ms">确认，预计 10:45 恢复正常</span></div>
+        <div class="agt"><span class="who ai">Agent</span><span class="ms">四线换型物料缺口已协调供应商加急，预计 10:20 到货</span></div>
+      </div>
+
+    </aside>
+
+      </div>
+    </div>
+
+    <!-- ══ 视图：产线实时状态 ══ -->
+    <div class="view" id="v-line">
+      <div class="vhd"><div><h2>产线实时状态</h2><div class="sub">4 条总装线 · 节拍 / 产量 / OEE 实时数据</div></div><div class="act"><button class="btn">导出</button></div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="mcard"><div class="t"><span class="dot g"></span>运行中产线</div><div class="v">3 / 4</div><div class="d">四线换型中，预计 10:30 恢复</div></div>
+        <div class="mcard"><div class="t"><span class="dot b"></span>平均节拍</div><div class="v">42.3 s</div><div class="d">三线最快 40s · 二线 45s</div></div>
+        <div class="mcard"><div class="t"><span class="dot y"></span>今日累计产量</div><div class="v">2,847 台</div><div class="d">较昨日同期 ▲ 6.2%</div></div>
+      </div>
+      <div class="card"><h3>产线明细 <small>刷新于 10:28:41</small></h3>
+      <table class="tbl">
+        <tr><th>产线</th><th>节拍</th><th>今日产量</th><th>OEE</th><th>工位数</th><th>状态</th><th>备注</th></tr>
+        <tr><td>总装一线</td><td class="mono">42s</td><td class="mono">812</td><td class="mono">88.1%</td><td class="mono">6</td><td><span class="tag g">运行</span></td><td>电池工位繁忙</td></tr>
+        <tr><td>总装二线</td><td class="mono">45s</td><td class="mono">768</td><td class="mono">84.7%</td><td class="mono">6</td><td><span class="tag r">告警</span></td><td>涂装房温度超限，Agent 已派单</td></tr>
+        <tr><td>总装三线</td><td class="mono">40s</td><td class="mono">845</td><td class="mono">91.2%</td><td class="mono">6</td><td><span class="tag g">运行</span></td><td>全工位正常，效率最高</td></tr>
+        <tr><td>总装四线</td><td class="mono">—</td><td class="mono">422</td><td class="mono">79.5%</td><td class="mono">6</td><td><span class="tag y">换型中</span></td><td>新款车型换型，预计 10:30 恢复</td></tr>
+      </table></div>
+    </div>
+
+    <!-- ══ 视图：设备运行监控 ══ -->
+    <div class="view" id="v-device">
+      <div class="vhd"><div><h2>设备运行监控</h2><div class="sub">12 台关键设备 · 状态 / 温度 / OEE / 维护</div></div><div class="act"><button class="btn">导出</button></div></div>
+      <div class="card"><h3>设备清单 <small>实时</small></h3>
+      <table class="tbl">
+        <tr><th>设备编号</th><th>设备名称</th><th>所在产线</th><th>状态</th><th>温度</th><th>OEE</th><th>上次维护</th></tr>
+        <tr><td class="mono">W-01</td><td>焊接机器人</td><td>总装一线</td><td><span class="tag g">运行</span></td><td class="mono">41.2°C</td><td class="mono">89.0%</td><td class="mono">09-15</td></tr>
+        <tr><td class="mono">W-02</td><td>焊接机器人</td><td>总装三线</td><td><span class="tag g">运行</span></td><td class="mono">40.8°C</td><td class="mono">90.3%</td><td class="mono">09-16</td></tr>
+        <tr><td class="mono">P-01</td><td>涂装线</td><td>总装二线</td><td><span class="tag r">告警</span></td><td class="mono">38.2°C</td><td class="mono">78.4%</td><td class="mono">09-10</td></tr>
+        <tr><td class="mono">P-02</td><td>涂装线</td><td>总装一线</td><td><span class="tag g">运行</span></td><td class="mono">33.1°C</td><td class="mono">87.6%</td><td class="mono">09-14</td></tr>
+        <tr><td class="mono">B-01</td><td>电池装配</td><td>总装一线</td><td><span class="tag g">运行</span></td><td class="mono">36.5°C</td><td class="mono">85.9%</td><td class="mono">09-12</td></tr>
+        <tr><td class="mono">B-02</td><td>电池装配</td><td>总装二线</td><td><span class="tag g">运行</span></td><td class="mono">36.2°C</td><td class="mono">84.1%</td><td class="mono">09-13</td></tr>
+        <tr><td class="mono">B-03</td><td>电池装配</td><td>总装三线</td><td><span class="tag g">运行</span></td><td class="mono">35.9°C</td><td class="mono">91.5%</td><td class="mono">09-15</td></tr>
+        <tr><td class="mono">AGV-01</td><td>AGV 搬运车</td><td>物流区</td><td><span class="tag g">运行</span></td><td class="mono">—</td><td class="mono">92.0%</td><td class="mono">09-11</td></tr>
+        <tr><td class="mono">AGV-02</td><td>AGV 搬运车</td><td>物流区</td><td><span class="tag g">运行</span></td><td class="mono">—</td><td class="mono">90.8%</td><td class="mono">09-11</td></tr>
+        <tr><td class="mono">AGV-03</td><td>AGV 搬运车</td><td>物流区</td><td><span class="tag y">充电中</span></td><td class="mono">—</td><td class="mono">76.2%</td><td class="mono">09-11</td></tr>
+        <tr><td class="mono">QC-01</td><td>终检台</td><td>总装一线</td><td><span class="tag g">运行</span></td><td class="mono">—</td><td class="mono">88.7%</td><td class="mono">09-08</td></tr>
+        <tr><td class="mono">QC-02</td><td>AI 视觉质检</td><td>质量检测站</td><td><span class="tag g">运行</span></td><td class="mono">—</td><td class="mono">94.3%</td><td class="mono">09-09</td></tr>
+      </table></div>
+    </div>
+
+    <!-- ══ 视图：运维 Agent ══ -->
+    <div class="view" id="v-ops">
+      <div class="vhd"><div><h2>运维 Agent</h2><div class="sub">3 个在岗 Agent · 自动巡检 / 派单 / 处置闭环</div></div><div class="act"><button class="btn">新建 Agent</button></div></div>
+      <div class="g2">
+        <div class="mcard"><div class="t"><span class="dot g"></span>巡检 Agent <span class="tag b">在岗</span></div><div class="v">24 次 / 时</div><div class="d">每 2.5 分钟全厂巡检一次，覆盖温度 / 振动 / 电流信号</div></div>
+        <div class="mcard"><div class="t"><span class="dot g"></span>派单 Agent <span class="tag b">在岗</span></div><div class="v">3 单</div><div class="d">今日已派 3 单：涂装温度、四线换型物料、AGV 充电调度</div></div>
+        <div class="mcard"><div class="t"><span class="dot y"></span>问答 Agent <span class="tag y">预热</span></div><div class="v">—</div><div class="d">对接设备手册知识库，正在灌入 240 条维修记录</div></div>
+      </div>
+      <div class="card"><h3>Agent 处置记录 <small>近 1 小时</small></h3>
+        <div class="agt"><span class="who ai">Agent</span><span class="ms">检测到涂装房温度 38.2°C（阈值 35°），已自动派单并调低风量</span></div>
+        <div class="agt"><span class="who hu">班长</span><span class="ms">确认，预计 10:45 恢复正常</span></div>
+        <div class="agt"><span class="who ai">Agent</span><span class="ms">四线换型物料缺口已协调供应商加急，预计 10:20 到货</span></div>
+        <div class="agt"><span class="who ai">Agent</span><span class="ms">AGV-03 电量低于 20%，已调度至充电位，替代车 AGV-02 已接单</span></div>
+      </div>
+    </div>
+
+    <!-- ══ 视图：智能客服 ══ -->
+    <div class="view" id="v-service">
+      <div class="vhd"><div><h2>智能客服</h2><div class="sub">在线 · 接待车主与门店咨询</div></div><div class="act"><span class="tag g">在线</span></div></div>
+      <div class="chat">
+        <div class="msgs">
+          <div class="msg u">我的车充电到 80% 后速度变慢了，正常吗？</div>
+          <div class="msg a">正常。为保证电池寿命，牧童全系车型在 80% 以上自动切换为涓流充电，80% 以下为快充。<br>如需长途出行，可在车机「充电设置」中临时解除 80% 上限。</div>
+          <div class="msg u">那电池质保是多久？</div>
+          <div class="msg a">动力电池质保 8 年或 16 万公里（先到为准），容量低于 70% 免费更换。您的车型在保修期内，无需担心。</div>
+          <div class="msg u">好的，谢谢。</div>
+          <div class="msg a">不客气。还有其他可以帮您的吗？</div>
+        </div>
+        <div class="inp"><input type="text" placeholder="输入问题，回车发送（演示界面）" onkeydown="if(event.key==='Enter'&&this.value.trim()){const m=document.createElement('div');m.className='msg u';m.textContent=this.value.trim();this.parentElement.parentElement.querySelector('.msgs').appendChild(m);const a=document.createElement('div');a.className='msg a';a.textContent='已收到。演示环境不接入真实模型，生产环境由牧童 Agent 回答。';this.parentElement.parentElement.querySelector('.msgs').appendChild(a);this.value='';}"><button>发送</button></div>
+      </div>
+    </div>
+
+    <!-- ══ 视图：知识库问答 ══ -->
+    <div class="view" id="v-kb">
+      <div class="vhd"><div><h2>知识库问答</h2><div class="sub">设备手册 / 工艺规范 / 维修记录 · 共 1,284 条</div></div><div class="act"><input style="border:1px solid #e1e4e8;border-radius:6px;padding:6px 10px;font-size:11px;outline:none" placeholder="搜索知识库…"></div></div>
+      <div class="card"><h3>高频问题 <small>近 7 天</small></h3>
+      <table class="tbl">
+        <tr><th style="width:60%">问题</th><th>来源</th><th>引用次数</th><th>命中率</th></tr>
+        <tr><td>涂装房温度超限的处置流程是什么？</td><td>设备手册</td><td class="mono">42</td><td><span class="tag g">96%</span></td></tr>
+        <tr><td>电池装配工位扭矩标准值是多少？</td><td>工艺规范</td><td class="mono">37</td><td><span class="tag g">93%</span></td></tr>
+        <tr><td>四线换型需要哪些准备步骤？</td><td>SOP 文档</td><td class="mono">28</td><td><span class="tag g">91%</span></td></tr>
+        <tr><td>AGV 充电调度策略如何配置？</td><td>设备手册</td><td class="mono">19</td><td><span class="tag y">84%</span></td></tr>
+        <tr><td>终检台标定周期是多久？</td><td>计量规范</td><td class="mono">15</td><td><span class="tag g">90%</span></td></tr>
+      </table></div>
+    </div>
+
+    <!-- ══ 视图：供应链优化 ══ -->
+    <div class="view" id="v-supply">
+      <div class="vhd"><div><h2>供应链优化</h2><div class="sub">关键物料库存与供应状态 · 与物料监控看板联动</div></div><div class="act"><button class="btn" onclick="location.href='/pages/index.html'">进入物料看板 →</button></div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="mcard"><div class="t"><span class="dot g"></span>今日到货</div><div class="v">6 批</div><div class="d">准时率 94.1%</div></div>
+        <div class="mcard"><div class="t"><span class="dot r"></span>低库存预警</div><div class="v">2 项</div><div class="d">详见物料看板临界清单</div></div>
+        <div class="mcard"><div class="t"><span class="dot y"></span>在途订单</div><div class="v">4 单</div><div class="d">其中 1 单加急</div></div>
+      </div>
+      <div class="card"><h3>供应商交付表现 <small>本周</small></h3>
+      <table class="tbl">
+        <tr><th>供应商</th><th>物料</th><th>准时率</th><th>质量合格率</th><th>在途批次</th></tr>
+        <tr><td>华锂新能源</td><td>动力电池包</td><td class="mono">97.5%</td><td><span class="tag g">99.2%</span></td><td class="mono">2</td></tr>
+        <tr><td>汉驰电机</td><td>驱动电机</td><td class="mono">95.0%</td><td><span class="tag g">98.8%</span></td><td class="mono">1</td></tr>
+        <tr><td>远航电池</td><td>铅酸启动电池</td><td class="mono">93.8%</td><td><span class="tag g">98.1%</span></td><td class="mono">1</td></tr>
+        <tr><td>晨光车灯</td><td>LED 大灯总成</td><td class="mono">91.2%</td><td><span class="tag y">96.4%</span></td><td class="mono">0</td></tr>
+        <tr><td>锦程轮胎</td><td>轮胎</td><td class="mono">96.9%</td><td><span class="tag g">99.0%</span></td><td class="mono">0</td></tr>
+      </table></div>
+    </div>
+
+    <!-- ══ 视图：质量检测 AI ══ -->
+    <div class="view" id="v-quality">
+      <div class="vhd"><div><h2>质量检测 AI</h2><div class="sub">AI 视觉质检 · 抽检率 15% · 今日合格率 98.6%</div></div><div class="act"><button class="btn">检测报告</button></div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="mcard"><div class="t"><span class="dot g"></span>今日检测</div><div class="v">427 台</div><div class="d">抽检率 15% · 覆盖全部产线</div></div>
+        <div class="mcard"><div class="t"><span class="dot r"></span>待复检</div><div class="v">3 台</div><div class="d">车灯装配 2 · 涂装瑕疵 1</div></div>
+        <div class="mcard"><div class="t"><span class="dot b"></span>AI 误判率</div><div class="v">0.4%</div><div class="d">人工复核修正后</div></div>
+      </div>
+      <div class="card"><h3>缺陷类型分布 <small>近 7 天</small></h3>
+        <div class="bar-row"><span class="bl">车灯装配</span><div class="bt"><i style="width:38%;background:#dc2626"></i></div><span class="bv">38%</span></div>
+        <div class="bar-row"><span class="bl">涂装瑕疵</span><div class="bt"><i style="width:27%;background:#d97706"></i></div><span class="bv">27%</span></div>
+        <div class="bar-row"><span class="bl">线束松动</span><div class="bt"><i style="width:19%;background:#2563eb"></i></div><span class="bv">19%</span></div>
+        <div class="bar-row"><span class="bl">电池接插</span><div class="bt"><i style="width:11%;background:#7c3aed"></i></div><span class="bv">11%</span></div>
+        <div class="bar-row"><span class="bl">其他</span><div class="bt"><i style="width:5%;background:#8b949e"></i></div><span class="bv">5%</span></div>
+      </div>
+    </div>
+
+    <!-- ══ 视图：能源看板 ══ -->
+    <div class="view" id="v-energy">
+      <div class="vhd"><div><h2>能源看板</h2><div class="sub">全厂能耗监测 · 今日 1,206 kWh · 较昨日 ▼ 4.5%</div></div><div class="act"><button class="btn">报表</button></div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="mcard"><div class="t"><span class="dot p"></span>今日能耗</div><div class="v">1,206 kWh</div><div class="d">▼ 4.5% 优化</div></div>
+        <div class="mcard"><div class="t"><span class="dot b"></span>单台能耗</div><div class="v">0.42 kWh</div><div class="d">目标 0.40</div></div>
+        <div class="mcard"><div class="t"><span class="dot g"></span>绿电占比</div><div class="v">31.2%</div><div class="d">屋顶光伏供电</div></div>
+      </div>
+      <div class="card"><h3>分项能耗 <small>今日 · kWh</small></h3>
+        <div class="bar-row"><span class="bl">焊接</span><div class="bt"><i style="width:100%;background:#dc2626"></i></div><span class="bv">412</span></div>
+        <div class="bar-row"><span class="bl">涂装</span><div class="bt"><i style="width:72%;background:#d97706"></i></div><span class="bv">298</span></div>
+        <div class="bar-row"><span class="bl">组装</span><div class="bt"><i style="width:56%;background:#2563eb"></i></div><span class="bv">231</span></div>
+        <div class="bar-row"><span class="bl">物流 AGV</span><div class="bt"><i style="width:31%;background:#059669"></i></div><span class="bv">128</span></div>
+        <div class="bar-row"><span class="bl">照明/空调</span><div class="bt"><i style="width:33%;background:#7c3aed"></i></div><span class="bv">137</span></div>
+      </div>
+    </div>
+
+    <!-- ══ 视图：系统设置 ══ -->
+    <div class="view" id="v-setting">
+      <div class="vhd"><div><h2>系统设置</h2><div class="sub">告警阈值 / 数据刷新 / Agent 策略</div></div><div class="act"><button class="btn on">保存</button></div></div>
+      <div class="card"><h3>告警阈值</h3>
+        <div class="frm">
+          <label>涂装房温度上限</label><input value="35" style="width:90px"> °C
+          <label>设备温度上限</label><input value="45" style="width:90px"> °C
+          <label>OEE 预警线</label><input value="80" style="width:90px"> %
+          <label>AGV 低电量阈值</label><input value="20" style="width:90px"> %
+          <label>告警推送渠道</label><select><option>飞书 + 页面</option><option>仅页面</option><option>仅飞书</option></select>
+        </div>
+      </div>
+      <div class="card"><h3>数据与 Agent</h3>
+        <div class="frm">
+          <label>看板刷新间隔</label><select><option>2 秒</option><option>5 秒</option><option>10 秒</option></select>
+          <label>自动巡检频率</label><select><option>2.5 分钟</option><option>5 分钟</option><option>10 分钟</option></select>
+          <label>HITL 审批开关</label><select><option>开启（处置需人工确认）</option><option>关闭（Agent 自动执行）</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 视图：操作日志 ══ -->
+    <div class="view" id="v-log">
+      <div class="vhd"><div><h2>操作日志</h2><div class="sub">系统与 Agent 操作留痕 · 近 24 小时</div></div><div class="act"><button class="btn">导出</button></div></div>
+      <div class="card"><h3>日志明细 <small>共 128 条</small></h3>
+      <table class="tbl">
+        <tr><th>时间</th><th>操作者</th><th>动作</th><th>对象</th><th>结果</th></tr>
+        <tr><td class="mono">10:28:12</td><td>巡检 Agent</td><td>自动巡检</td><td>全厂 12 台设备</td><td><span class="tag g">正常</span></td></tr>
+        <tr><td class="mono">10:26:47</td><td>派单 Agent</td><td>创建工单</td><td>涂装线 P-01 温度</td><td><span class="tag g">已派单</span></td></tr>
+        <tr><td class="mono">10:24:05</td><td>巡检 Agent</td><td>告警上报</td><td>涂装房 38.2°C</td><td><span class="tag r">超限</span></td></tr>
+        <tr><td class="mono">10:18:33</td><td>系统</td><td>数据同步</td><td>物料看板库存</td><td><span class="tag g">完成</span></td></tr>
+        <tr><td class="mono">10:12:59</td><td>班长</td><td>登录</td><td>控制台</td><td><span class="tag g">成功</span></td></tr>
+        <tr><td class="mono">09:58:21</td><td>派单 Agent</td><td>物料加急</td><td>四线换型缺料</td><td><span class="tag g">已协调</span></td></tr>
+        <tr><td class="mono">09:47:10</td><td>巡检 Agent</td><td>告警上报</td><td>四线换型延迟</td><td><span class="tag y">跟进中</span></td></tr>
+      </table></div>
+    </div>
+
+    <!-- 底部状态条 -->
+    <div class="ft">
+      <span class="lg"><i style="background:#16a34a"></i>运行</span>
+      <span class="lg"><i style="background:#d97706"></i>繁忙</span>
+      <span class="lg"><i style="background:#dc2626"></i>告警</span>
+      <span class="lg"><i style="background:#d1d5db"></i>停机/换型</span>
+      <span class="mono">牧童 Agent · 数据延迟 &lt; 2s · 案例：牧童电动车智能制造</span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// 视图切换
+function sw(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  const v=document.getElementById('v-'+name);
+  if(v)v.classList.add('on');
+  document.querySelectorAll('.sd-item[data-v]').forEach(i=>i.classList.toggle('on',i.dataset.v===name));
+  document.querySelectorAll('.hd-mid a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===name));
+}
+
+// 时钟
+function tick(){
+  const d=new Date();
+  document.getElementById('clock').textContent=d.toTimeString().slice(0,8);
+}
+tick();setInterval(tick,1000);
+
+// 退出登录
+async function logout(){
+  try{await fetch('/api/auth/logout',{method:'POST'});}catch(e){}
+  location.href='/pages/login.html';
+}
+</script>
+</body>
+</html>

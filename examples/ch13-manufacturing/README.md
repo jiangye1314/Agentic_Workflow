@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | [permission_rag.py](permission_rag.py) | 文档上传（部门元数据）、权限过滤检索、审计日志 | 约 p365–366 |
 | [sales_analysis.py](sales_analysis.py) | 飞书多维表格导出 CSV 的 pandas 聚合处理 | 约 p372–373 |
+| [sample3/](sample3/) | 可运行演示：牧童电动车智能制造控制台 + 物料监控看板（Flask + 原生 JS，含登录认证） | 动手实践 |
 
 ## 关联资源
 
