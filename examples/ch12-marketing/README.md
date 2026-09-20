@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | [product-recommend-prompt.md](product-recommend-prompt.md) | 个性化商品推荐智能体的提示词骨架 | 约 p347 |
 | [browser-extension-structure.md](browser-extension-structure.md) | 电商场景浏览器插件的工程结构 | 约 p340 |
+| [sample2/](sample2/) | 可运行演示：牧童商城电商智慧运营平台（Flask + Vue3，含登录认证、智能推荐人工审核、定价底线校验） | 动手实践 |
 
 ## 关联资源
 
