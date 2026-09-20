@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+data/db.json
+
+# 本地演示截图（不入库）
+screenshot-dashboard.png
