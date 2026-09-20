@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 牧童中学智慧教学平台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z' fill='%231a4b8c'/></svg>">
+<style>
+  :root {
+    --brand: #1a4b8c;
+    --brand-weak: #e8eef7;
+    --brand-border: #c3d2e8;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --border: #e1e4e8;
+    --text: #24292e;
+    --muted: #6a737d;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #f0f4f9 0%, #f8f9fa 45%, #eef2f7 100%);
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+  }
+  .login-wrap { width: 400px; padding: 0 20px; }
+  .school-head { text-align: center; margin-bottom: 26px; }
+  .shield {
+    width: 64px; height: 72px; margin: 0 auto 14px;
+    position: relative;
+  }
+  .shield svg { width: 100%; height: 100%; }
+  .school-name { font-size: 22px; font-weight: 700; letter-spacing: 2px; color: var(--brand); }
+  .school-sub { font-size: 13px; color: var(--muted); margin-top: 6px; letter-spacing: 1px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px 32px;
+    box-shadow: 0 4px 20px rgba(26, 75, 140, .08);
+  }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .field input {
+    width: 100%; height: 40px; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; color: var(--text);
+    background: var(--card); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(26, 75, 140, .12); }
+  .btn-login {
+    width: 100%; height: 42px; margin-top: 6px;
+    background: var(--brand); color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    letter-spacing: 2px;
+    transition: background .15s;
+  }
+  .btn-login:hover { background: #163e75; }
+  .btn-login:disabled { background: #9db3d2; cursor: not-allowed; }
+  .err {
+    display: none; margin-bottom: 14px; padding: 9px 12px;
+    background: #fdf0f0; border: 1px solid #f5c6c6; border-radius: 8px;
+    color: var(--danger); font-size: 13px;
+  }
+  .err.show { display: block; }
+  .demo-hint {
+    margin-top: 18px; padding: 12px 14px;
+    background: var(--brand-weak); border: 1px solid var(--brand-border);
+    border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.9;
+  }
+  .demo-hint b { color: var(--brand); font-weight: 600; }
+  .foot { text-align: center; margin-top: 22px; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="school-head">
+    <div class="shield">
+      <svg viewBox="0 0 64 72" fill="none">
+        <path d="M32 2L62 13v22c0 17-12 30-30 35C14 65 2 52 2 35V13L32 2z" fill="#1a4b8c"/>
+        <path d="M32 9L55 17.5V35c0 13.5-9.5 24-23 28.5C18.5 59 9 48.5 9 35V17.5L32 9z" fill="#ffffff" opacity=".94"/>
+        <path d="M32 16l6.5 13.5L53 31.5l-10 9.5 2.5 14L32 47l-13.5 8 2.5-14-10-9.5 14.5-2L32 16z" fill="#1a4b8c"/>
+        <path d="M20 52h24v6H20z" fill="#c39a3d"/>
+        <text x="32" y="69" font-size="7" text-anchor="middle" fill="#1a4b8c" font-family="serif" letter-spacing="1">牧童</text>
+      </svg>
+    </div>
+    <div class="school-name">牧童中学智慧教学平台</div>
+    <div class="school-sub">作业布置 · AI 批改 · 人工复核 · 学情分析</div>
+  </div>
+  <div class="card">
+    <div class="card-title">教师登录</div>
+    <div class="err" id="err">用户名或密码错误</div>
+    <div class="field">
+      <label>账号</label>
+      <input id="username" placeholder="admin 或 teacher" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <input id="password" type="password" placeholder="演示密码 123456" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn" onclick="doLogin()">登 录</button>
+    <div class="demo-hint">
+      <b>演示账号</b><br>
+      管理员：admin / 123456<br>
+      教师：teacher / 123456
+    </div>
+  </div>
+  <div class="foot">牧童中学 · 智慧教学 · 浅色主题演示</div>
+</div>
+
+<script>
+async function doLogin() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  const err = document.getElementById("err");
+  const btn = document.getElementById("btn");
+  if (!username || !password) {
+    err.textContent = "请输入账号和密码";
+    err.classList.add("show");
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "登录中…";
+  try {
+    const r = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      location.href = "/";
+    } else {
+      err.textContent = data.message || "登录失败";
+      err.classList.add("show");
+    }
+  } catch (e) {
+    err.textContent = "网络错误：" + e.message;
+    err.classList.add("show");
+  }
+  btn.disabled = false;
+  btn.textContent = "登 录";
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") doLogin();
+});
+</script>
+</body>
+</html>
